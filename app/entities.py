@@ -1,7 +1,4 @@
-"""
-Сущности предметной области (Круг 1 модели Мартина).
-Обычные dataclass: никаких зависимостей от ORM и веб-фреймворка.
-"""
+"""Сущности предметной области (dataclass, без ORM)."""
 from dataclasses import dataclass
 
 
@@ -12,6 +9,8 @@ class User:
     phone: str | None
     balance: float
     is_blocked: bool
+    role: str = "student"
+    password_hash: str | None = None
 
 
 @dataclass

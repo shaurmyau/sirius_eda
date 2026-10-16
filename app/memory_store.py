@@ -1,8 +1,16 @@
-"""
-Хранилище в памяти для InMemory-репозиториев (тесты и запуск без PostgreSQL).
-Общее для всех модулей, чтобы orders видел пользователей и блюда.
-"""
+"""Хранилище в памяти."""
+from dataclasses import dataclass
+
 from app.entities import Delivery, MenuItem, Order, User
+
+
+@dataclass
+class RefreshTokenRecord:
+    jti: str
+    user_id: int
+    token_hash: str
+    expires_at: float
+    is_revoked: bool = False
 
 
 class MemoryStore:
@@ -11,17 +19,15 @@ class MemoryStore:
         self.menu_items: dict[int, MenuItem] = {}
         self.orders: dict[int, Order] = {}
         self.deliveries: dict[int, Delivery] = {}
+        self.refresh_tokens: dict[str, RefreshTokenRecord] = {}
 
     @staticmethod
     def next_id(table: dict) -> int:
         return max(table, default=0) + 1
 
-    def clear(self) -> None:
-        self.users.clear()
-        self.menu_items.clear()
-        self.orders.clear()
-        self.deliveries.clear()
+    def clear(self):
+        for d in (self.users, self.menu_items, self.orders, self.deliveries, self.refresh_tokens):
+            d.clear()
 
 
-# Общий экземпляр для приложения (REPO_BACKEND=memory)
 memory_store = MemoryStore()

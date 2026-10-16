@@ -1,11 +1,10 @@
-"""
-Pydantic-схемы для валидации входных и выходных данных.
-"""
+"""Pydantic-схемы."""
 from pydantic import BaseModel, EmailStr
 
 
 class UserCreate(BaseModel):
     email: EmailStr
+    password: str
     phone: str | None = None
 
 
@@ -30,7 +29,6 @@ class MenuItemUpdate(BaseModel):
 
 
 class OrderCreate(BaseModel):
-    user_id: int
     item_id: int
     quantity: int
 
@@ -38,3 +36,18 @@ class OrderCreate(BaseModel):
 class DeliveryAssign(BaseModel):
     order_id: int
     courier_id: int
+
+
+class LoginSchema(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class RefreshSchema(BaseModel):
+    refresh_token: str
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
