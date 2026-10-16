@@ -1,0 +1,3232 @@
+app/container.py:
+"""
+"""
+Точка сборки слоёв (composition root).
+
+Единственное место, которое знает, какая реализация репозитория используется.
+Для замены хранилища достаточно переключить REPO_BACKEND:
+service.py и router.py при этом не меняются.
+
+    REPO_BACKEND=postgres  (по умолчанию) - PostgreSQL через SQLAlchemy
+    REPO_BACKEND=memory                    - хранение в памяти
+"""
+import os
+
+from fastapi import Depends
+from sqlalchemy.orm import Session
+
+from app.database import get_db
+from app.memory_store import memory_store
+from app.modules.delivery.repository import (
+    InMemoryDeliveryRepository,
+    SqlDeliveryRepository,
+)
+from app.modules.delivery.service import DeliveryService
+from app.modules.menu.repository import InMemoryMenuRepository, SqlMenuRepository
+from app.modules.menu.service import MenuService
+from app.modules.orders.repository import (
+    InMemoryOrderRepository,
+    SqlOrderRepository,
+)
+from app.modules.orders.service import OrderService
+from app.modules.users.repository import InMemoryUserRepository, SqlUserRepository
+from app.modules.users.service import UserService
+
+
+def use_memory_backend() -> bool:
+    return os.getenv("REPO_BACKEND", "postgres").lower() == "memory"
+
+
+def get_user_service(db: Session = Depends(get_db)) -> UserService:
+    if use_memory_backend():
+        return UserService(InMemoryUserRepository(memory_store))
+    return UserService(SqlUserRepository(db))
+
+
+def get_menu_service(db: Session = Depends(get_db)) -> MenuService:
+    if use_memory_backend():
+        return MenuService(InMemoryMenuRepository(memory_store))
+    return MenuService(SqlMenuRepository(db))
+
+
+def get_order_service(db: Session = Depends(get_db)) -> OrderService:
+    if use_memory_backend():
+        return OrderService(InMemoryOrderRepository(memory_store))
+    return OrderService(SqlOrderRepository(db))
+
+
+def get_delivery_service(db: Session = Depends(get_db)) -> DeliveryService:
+    if use_memory_backend():
+        return DeliveryService(InMemoryDeliveryRepository(memory_store))
+    return DeliveryService(SqlDeliveryRepository(db))
+"""
+
+app/database.py:
+"""
+"""
+Модуль инициализации подключения к СУБД PostgreSQL.
+"""
+import os
+
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, declarative_base
+
+DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "postgresql+psycopg2://sirius:sirius@localhost:5432/sirius_food",
+)
+
+# echo=True выводит SQL-запросы (INSERT, UPDATE) в терминал; отключается SQL_ECHO=0
+engine = create_engine(DATABASE_URL, echo=os.getenv("SQL_ECHO", "1") == "1")
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
+
+
+def get_db():
+    """Генератор сессии базы данных для использования в Depends."""
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+"""
+
+app/entities.py:
+"""
+"""
+Сущности предметной области (Круг 1 модели Мартина).
+Обычные dataclass: никаких зависимостей от ORM и веб-фреймворка.
+"""
+from dataclasses import dataclass
+
+
+@dataclass
+class User:
+    id: int
+    email: str
+    phone: str | None
+    balance: float
+    is_blocked: bool
+
+
+@dataclass
+class MenuItem:
+    id: int
+    name: str
+    price: float
+    is_available: bool
+
+
+@dataclass
+class Order:
+    id: int
+    user_id: int
+    item_id: int
+    quantity: int
+    status: str
+
+
+@dataclass
+class Delivery:
+    id: int
+    order_id: int
+    courier_id: int | None
+    status: str
+"""
+
+app/exceptions.py:
+"""
+"""
+Доменные исключения. Наследуются от ValueError, поэтому сервис
+по-прежнему «возбуждает ValueError при нарушении бизнес-правил».
+Обычный ValueError -> HTTP 400, NotFoundError -> 404, ForbiddenError -> 403.
+"""
+
+
+class NotFoundError(ValueError):
+    """Запрошенный объект не найден."""
+
+
+class ForbiddenError(ValueError):
+    """Операция запрещена (например, пользователь заблокирован)."""
+"""
+
+app/http_errors.py:
+"""
+"""
+Трансляция доменных исключений в HTTP-ответы (транспортный слой).
+"""
+from fastapi import HTTPException
+
+from app.exceptions import ForbiddenError, NotFoundError
+
+
+def to_http_error(error: ValueError) -> HTTPException:
+    if isinstance(error, NotFoundError):
+        status = 404
+    elif isinstance(error, ForbiddenError):
+        status = 403
+    else:
+        status = 400
+    return HTTPException(status_code=status, detail=str(error))
+"""
+
+app/__init__.py:
+"""
+"""
+
+app/main.py:
+"""
+"""
+Точка входа приложения. Выполняет инициализацию FastAPI,
+подключение модулей и создание таблиц базы данных.
+"""
+from fastapi import FastAPI
+
+from app import models  # noqa: F401  (регистрирует таблицы в Base.metadata)
+from app.container import use_memory_backend
+from app.database import Base, engine
+from app.modules.users.router import router as users_router
+from app.modules.menu.router import router as menu_router
+from app.modules.orders.router import router as orders_router
+from app.modules.delivery.router import router as delivery_router
+
+if not use_memory_backend():
+    Base.metadata.create_all(bind=engine)
+
+app = FastAPI(title="Sirius.Food API")
+
+app.include_router(users_router, prefix="/users", tags=["users"])
+app.include_router(menu_router, prefix="/menu", tags=["menu"])
+app.include_router(orders_router, prefix="/orders", tags=["orders"])
+app.include_router(delivery_router, prefix="/delivery", tags=["delivery"])
+"""
+
+app/mappers.py:
+"""
+"""
+Преобразование ORM-моделей в сущности предметной области.
+Используется только в SQL-репозиториях.
+"""
+from app import entities, models
+
+
+def to_user(row: models.User | None) -> entities.User | None:
+    if row is None:
+        return None
+    return entities.User(
+        id=row.id,
+        email=row.email,
+        phone=row.phone,
+        balance=row.balance,
+        is_blocked=row.is_blocked,
+    )
+
+
+def to_menu_item(row: models.MenuItem | None) -> entities.MenuItem | None:
+    if row is None:
+        return None
+    return entities.MenuItem(
+        id=row.id,
+        name=row.name,
+        price=row.price,
+        is_available=row.is_available,
+    )
+
+
+def to_order(row: models.Order | None) -> entities.Order | None:
+    if row is None:
+        return None
+    return entities.Order(
+        id=row.id,
+        user_id=row.user_id,
+        item_id=row.item_id,
+        quantity=row.quantity,
+        status=row.status,
+    )
+
+
+def to_delivery(row: models.Delivery | None) -> entities.Delivery | None:
+    if row is None:
+        return None
+    return entities.Delivery(
+        id=row.id,
+        order_id=row.order_id,
+        courier_id=row.courier_id,
+        status=row.status,
+    )
+"""
+
+app/memory_store.py:
+"""
+"""
+Хранилище в памяти для InMemory-репозиториев (тесты и запуск без PostgreSQL).
+Общее для всех модулей, чтобы orders видел пользователей и блюда.
+"""
+from app.entities import Delivery, MenuItem, Order, User
+
+
+class MemoryStore:
+    def __init__(self):
+        self.users: dict[int, User] = {}
+        self.menu_items: dict[int, MenuItem] = {}
+        self.orders: dict[int, Order] = {}
+        self.deliveries: dict[int, Delivery] = {}
+
+    @staticmethod
+    def next_id(table: dict) -> int:
+        return max(table, default=0) + 1
+
+    def clear(self) -> None:
+        self.users.clear()
+        self.menu_items.clear()
+        self.orders.clear()
+        self.deliveries.clear()
+
+
+# Общий экземпляр для приложения (REPO_BACKEND=memory)
+memory_store = MemoryStore()
+"""
+
+app/models.py:
+"""
+"""
+Определение ORM-моделей предметной области «Сириус.Еда».
+Используются только инфраструктурным слоем (repository.py).
+"""
+from sqlalchemy import Column, Integer, String, Float, Boolean, ForeignKey
+from sqlalchemy.orm import relationship
+
+from app.database import Base
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String, unique=True, nullable=False)
+    phone = Column(String, nullable=True)
+    balance = Column(Float, default=0.0)
+    is_blocked = Column(Boolean, default=False)
+
+
+class MenuItem(Base):
+    __tablename__ = "menu_items"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    price = Column(Float, nullable=False)
+    is_available = Column(Boolean, default=True)
+
+
+class Order(Base):
+    __tablename__ = "orders"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    item_id = Column(Integer, ForeignKey("menu_items.id"))
+    quantity = Column(Integer, nullable=False)
+    status = Column(String, default="processing")
+
+    user = relationship("User")
+    item = relationship("MenuItem")
+
+
+class Delivery(Base):
+    __tablename__ = "deliveries"
+
+    id = Column(Integer, primary_key=True, index=True)
+    order_id = Column(Integer, ForeignKey("orders.id"))
+    courier_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    status = Column(String, default="pending")
+
+    order = relationship("Order")
+    courier = relationship("User")
+"""
+
+app/modules/delivery/__init__.py:
+"""
+"""
+
+app/modules/delivery/repository.py:
+"""
+"""
+Инфраструктурный слой модуля delivery (Круг 3).
+Абстрактный интерфейс и две реализации: SQL и in-memory.
+"""
+from abc import ABC, abstractmethod
+
+from sqlalchemy.orm import Session
+
+from app.entities import Delivery, Order, User
+from app.mappers import to_delivery, to_order, to_user
+from app.memory_store import MemoryStore
+from app.models import Delivery as DeliveryModel
+from app.models import Order as OrderModel
+from app.models import User as UserModel
+
+
+class DeliveryRepository(ABC):
+    """Интерфейс доступа к данным доставки."""
+
+    @abstractmethod
+    def get_order_by_id(self, order_id: int) -> Order | None: ...
+
+    @abstractmethod
+    def get_user_by_id(self, user_id: int) -> User | None: ...
+
+    @abstractmethod
+    def get_delivery_by_id(self, delivery_id: int) -> Delivery | None: ...
+
+    @abstractmethod
+    def get_active_delivery_by_courier(self, courier_id: int) -> Delivery | None:
+        """Доставка курьера со статусом in_progress (если есть)."""
+
+    @abstractmethod
+    def save_delivery(self, order_id: int, courier_id: int) -> Delivery:
+        """Создаёт доставку со статусом in_progress."""
+
+    @abstractmethod
+    def save_completion(self, delivery: Delivery, order: Order | None) -> None:
+        """Сохраняет статус доставки и (если есть) заказа одной транзакцией."""
+
+
+class SqlDeliveryRepository(DeliveryRepository):
+    """Реализация на PostgreSQL через SQLAlchemy ORM."""
+
+    def __init__(self, db: Session):
+        self.db = db
+
+    def get_order_by_id(self, order_id: int) -> Order | None:
+        row = self.db.query(OrderModel).filter(OrderModel.id == order_id).first()
+        return to_order(row)
+
+    def get_user_by_id(self, user_id: int) -> User | None:
+        row = self.db.query(UserModel).filter(UserModel.id == user_id).first()
+        return to_user(row)
+
+    def get_delivery_by_id(self, delivery_id: int) -> Delivery | None:
+        row = self.db.query(DeliveryModel).filter(DeliveryModel.id == delivery_id).first()
+        return to_delivery(row)
+
+    def get_active_delivery_by_courier(self, courier_id: int) -> Delivery | None:
+        row = (
+            self.db.query(DeliveryModel)
+            .filter(
+                DeliveryModel.courier_id == courier_id,
+                DeliveryModel.status == "in_progress",
+            )
+            .first()
+        )
+        return to_delivery(row)
+
+    def save_delivery(self, order_id: int, courier_id: int) -> Delivery:
+        row = DeliveryModel(order_id=order_id, courier_id=courier_id, status="in_progress")
+        self.db.add(row)
+        self.db.commit()
+        self.db.refresh(row)
+        return to_delivery(row)
+
+    def save_completion(self, delivery: Delivery, order: Order | None) -> None:
+        delivery_row = (
+            self.db.query(DeliveryModel).filter(DeliveryModel.id == delivery.id).first()
+        )
+        delivery_row.status = delivery.status
+        self.db.add(delivery_row)
+
+        if order is not None:
+            order_row = self.db.query(OrderModel).filter(OrderModel.id == order.id).first()
+            order_row.status = order.status
+            self.db.add(order_row)
+
+        self.db.commit()
+
+
+class InMemoryDeliveryRepository(DeliveryRepository):
+    """Реализация в памяти (для тестов и запуска без СУБД)."""
+
+    def __init__(self, store: MemoryStore | None = None):
+        self.store = store or MemoryStore()
+
+    def get_order_by_id(self, order_id: int) -> Order | None:
+        return self.store.orders.get(order_id)
+
+    def get_user_by_id(self, user_id: int) -> User | None:
+        return self.store.users.get(user_id)
+
+    def get_delivery_by_id(self, delivery_id: int) -> Delivery | None:
+        return self.store.deliveries.get(delivery_id)
+
+    def get_active_delivery_by_courier(self, courier_id: int) -> Delivery | None:
+        for delivery in self.store.deliveries.values():
+            if delivery.courier_id == courier_id and delivery.status == "in_progress":
+                return delivery
+        return None
+
+    def save_delivery(self, order_id: int, courier_id: int) -> Delivery:
+        delivery = Delivery(
+            id=self.store.next_id(self.store.deliveries),
+            order_id=order_id,
+            courier_id=courier_id,
+            status="in_progress",
+        )
+        self.store.deliveries[delivery.id] = delivery
+        return delivery
+
+    def save_completion(self, delivery: Delivery, order: Order | None) -> None:
+        self.store.deliveries[delivery.id] = delivery
+        if order is not None:
+            self.store.orders[order.id] = order
+"""
+
+app/modules/delivery/router.py:
+"""
+"""
+Транспортный слой модуля delivery (Круг 4).
+"""
+from fastapi import APIRouter, Depends
+
+from app.container import get_delivery_service
+from app.http_errors import to_http_error
+from app.modules.delivery.service import DeliveryService
+from app.schemas import DeliveryAssign
+
+router = APIRouter()
+
+
+@router.post("/assign")
+def assign_courier(
+    payload: DeliveryAssign,
+    service: DeliveryService = Depends(get_delivery_service),
+):
+    try:
+        delivery_id = service.assign_courier(payload.order_id, payload.courier_id)
+    except ValueError as e:
+        raise to_http_error(e)
+
+    return {"status": "success", "delivery_id": delivery_id}
+
+
+@router.patch("/{delivery_id}/complete")
+def complete_delivery(
+    delivery_id: int,
+    service: DeliveryService = Depends(get_delivery_service),
+):
+    try:
+        service.complete_delivery(delivery_id)
+    except ValueError as e:
+        raise to_http_error(e)
+
+    return {"status": "success"}
+"""
+
+app/modules/delivery/service.py:
+"""
+"""
+Слой бизнес-логики модуля delivery (Круги 1 и 2).
+Не зависит от fastapi и sqlalchemy.
+"""
+from app.exceptions import ForbiddenError, NotFoundError
+from app.modules.delivery.repository import DeliveryRepository
+
+
+class DeliveryService:
+    """Бизнес-правила доставки заказов."""
+
+    def __init__(self, repository: DeliveryRepository):
+        # Внедрение зависимости через конструктор (инверсия зависимостей).
+        self.repository = repository
+
+    def assign_courier(self, order_id: int, courier_id: int) -> int:
+        """Назначает курьера на заказ и возвращает id доставки."""
+        order = self.repository.get_order_by_id(order_id)
+        if not order:
+            raise NotFoundError("Заказ не найден")
+
+        # Бизнес-правило: курьера можно назначить только на оплаченный заказ.
+        if order.status != "paid":
+            raise ValueError("Курьера можно назначить только на оплаченный заказ")
+
+        courier = self.repository.get_user_by_id(courier_id)
+        if not courier:
+            raise NotFoundError("Курьер не найден")
+        if courier.is_blocked:
+            raise ForbiddenError("Курьер заблокирован и не может быть назначен")
+
+        # Бизнес-правило: один курьер - одна активная доставка.
+        if self.repository.get_active_delivery_by_courier(courier_id):
+            raise ValueError("У курьера уже есть активная доставка")
+
+        return self.repository.save_delivery(order_id, courier_id).id
+
+    def complete_delivery(self, delivery_id: int) -> None:
+        """Завершает доставку и помечает заказ как доставленный."""
+        delivery = self.repository.get_delivery_by_id(delivery_id)
+        if not delivery:
+            raise NotFoundError("Доставка не найдена")
+        if delivery.status == "completed":
+            raise ValueError("Доставка уже завершена")
+        if delivery.status == "cancelled":
+            raise ValueError("Отменённую доставку нельзя завершить")
+
+        delivery.status = "completed"
+
+        order = self.repository.get_order_by_id(delivery.order_id)
+        if order:
+            order.status = "delivered"
+
+        self.repository.save_completion(delivery, order)
+"""
+
+app/modules/__init__.py:
+"""
+"""
+
+app/modules/menu/__init__.py:
+"""
+"""
+
+app/modules/menu/repository.py:
+"""
+"""
+Инфраструктурный слой модуля menu (Круг 3).
+Абстрактный интерфейс и две реализации: SQL и in-memory.
+"""
+from abc import ABC, abstractmethod
+
+from sqlalchemy.orm import Session
+
+from app.entities import MenuItem
+from app.mappers import to_menu_item
+from app.memory_store import MemoryStore
+from app.models import MenuItem as MenuItemModel
+
+
+class MenuRepository(ABC):
+    """Интерфейс доступа к данным меню."""
+
+    @abstractmethod
+    def get_menu_item_by_id(self, item_id: int) -> MenuItem | None: ...
+
+    @abstractmethod
+    def get_menu_item_by_name(self, name: str) -> MenuItem | None: ...
+
+    @abstractmethod
+    def save_menu_item(self, name: str, price: float) -> MenuItem:
+        """Создаёт доступное блюдо."""
+
+    @abstractmethod
+    def update_menu_item(self, item: MenuItem) -> None:
+        """Сохраняет изменённые поля блюда."""
+
+
+class SqlMenuRepository(MenuRepository):
+    """Реализация на PostgreSQL через SQLAlchemy ORM."""
+
+    def __init__(self, db: Session):
+        self.db = db
+
+    def get_menu_item_by_id(self, item_id: int) -> MenuItem | None:
+        row = self.db.query(MenuItemModel).filter(MenuItemModel.id == item_id).first()
+        return to_menu_item(row)
+
+    def get_menu_item_by_name(self, name: str) -> MenuItem | None:
+        row = self.db.query(MenuItemModel).filter(MenuItemModel.name == name).first()
+        return to_menu_item(row)
+
+    def save_menu_item(self, name: str, price: float) -> MenuItem:
+        row = MenuItemModel(name=name, price=price, is_available=True)
+        self.db.add(row)
+        self.db.commit()
+        self.db.refresh(row)
+        return to_menu_item(row)
+
+    def update_menu_item(self, item: MenuItem) -> None:
+        row = self.db.query(MenuItemModel).filter(MenuItemModel.id == item.id).first()
+        row.name = item.name
+        row.price = item.price
+        row.is_available = item.is_available
+        self.db.add(row)
+        self.db.commit()
+
+
+class InMemoryMenuRepository(MenuRepository):
+    """Реализация в памяти (для тестов и запуска без СУБД)."""
+
+    def __init__(self, store: MemoryStore | None = None):
+        self.store = store or MemoryStore()
+
+    def get_menu_item_by_id(self, item_id: int) -> MenuItem | None:
+        return self.store.menu_items.get(item_id)
+
+    def get_menu_item_by_name(self, name: str) -> MenuItem | None:
+        for item in self.store.menu_items.values():
+            if item.name == name:
+                return item
+        return None
+
+    def save_menu_item(self, name: str, price: float) -> MenuItem:
+        item = MenuItem(
+            id=self.store.next_id(self.store.menu_items),
+            name=name,
+            price=price,
+            is_available=True,
+        )
+        self.store.menu_items[item.id] = item
+        return item
+
+    def update_menu_item(self, item: MenuItem) -> None:
+        self.store.menu_items[item.id] = item
+"""
+
+app/modules/menu/router.py:
+"""
+"""
+Транспортный слой модуля menu (Круг 4).
+"""
+from fastapi import APIRouter, Depends, HTTPException
+
+from app.container import get_menu_service
+from app.http_errors import to_http_error
+from app.modules.menu.service import MenuService
+from app.schemas import MenuItemCreate, MenuItemUpdate
+
+router = APIRouter()
+
+
+@router.post("/items")
+def create_menu_item(payload: MenuItemCreate, service: MenuService = Depends(get_menu_service)):
+    # Техническая валидация цены и названия.
+    if payload.price <= 0:
+        raise HTTPException(status_code=400, detail="Цена должна быть положительной")
+    if len(payload.name) < 2:
+        raise HTTPException(status_code=400, detail="Название блюда слишком короткое")
+
+    try:
+        item_id = service.create_menu_item(payload.name, payload.price)
+    except ValueError as e:
+        raise to_http_error(e)
+
+    return {"status": "success", "item_id": item_id}
+
+
+@router.patch("/items/{item_id}")
+def update_menu_item(
+    item_id: int,
+    payload: MenuItemUpdate,
+    service: MenuService = Depends(get_menu_service),
+):
+    # Техническая валидация нового значения цены.
+    if payload.price is not None and payload.price <= 0:
+        raise HTTPException(status_code=400, detail="Цена должна быть положительной")
+
+    try:
+        updated_id = service.update_menu_item(
+            item_id,
+            name=payload.name,
+            price=payload.price,
+            is_available=payload.is_available,
+        )
+    except ValueError as e:
+        raise to_http_error(e)
+
+    return {"status": "success", "item_id": updated_id}
+"""
+
+app/modules/menu/service.py:
+"""
+"""
+Слой бизнес-логики модуля menu (Круги 1 и 2).
+Не зависит от fastapi и sqlalchemy.
+"""
+from app.exceptions import NotFoundError
+from app.modules.menu.repository import MenuRepository
+
+
+class MenuService:
+    """Бизнес-правила работы с меню."""
+
+    def __init__(self, repository: MenuRepository):
+        # Внедрение зависимости через конструктор (инверсия зависимостей).
+        self.repository = repository
+
+    def create_menu_item(self, name: str, price: float) -> int:
+        """Создаёт блюдо и возвращает его id. ValueError, если название занято."""
+        if self.repository.get_menu_item_by_name(name):
+            raise ValueError("Блюдо с таким названием уже существует")
+        return self.repository.save_menu_item(name, price).id
+
+    def update_menu_item(
+        self,
+        item_id: int,
+        name: str | None,
+        price: float | None,
+        is_available: bool | None,
+    ) -> int:
+        """Обновляет переданные поля блюда и возвращает его id."""
+        item = self.repository.get_menu_item_by_id(item_id)
+        if not item:
+            raise NotFoundError("Блюдо не найдено")
+
+        if name is not None:
+            item.name = name
+        if price is not None:
+            item.price = price
+        if is_available is not None:
+            item.is_available = is_available
+
+        self.repository.update_menu_item(item)
+        return item.id
+"""
+
+app/modules/orders/__init__.py:
+"""
+"""
+
+app/modules/orders/repository.py:
+"""
+"""
+Инфраструктурный слой модуля orders (Круг 3).
+Абстрактный интерфейс и две реализации: SQL и in-memory.
+Класс отвечает только за ввод-вывод, бизнес-правил здесь нет.
+"""
+from abc import ABC, abstractmethod
+
+from sqlalchemy.orm import Session
+
+from app.entities import MenuItem, Order, User
+from app.mappers import to_menu_item, to_user
+from app.memory_store import MemoryStore
+from app.models import MenuItem as MenuItemModel
+from app.models import Order as OrderModel
+from app.models import User as UserModel
+
+
+class OrderRepository(ABC):
+    """Интерфейс доступа к данным, нужным сценарию оформления заказа."""
+
+    @abstractmethod
+    def get_user_by_id(self, user_id: int) -> User | None:
+        """Извлечение пользователя по идентификатору."""
+
+    @abstractmethod
+    def get_menu_item_by_id(self, item_id: int) -> MenuItem | None:
+        """Извлечение блюда из меню по идентификатору."""
+
+    @abstractmethod
+    def save_order_and_update_balance(
+        self, user_id: int, item_id: int, quantity: int, new_balance: float
+    ) -> int:
+        """
+        Создаёт заказ и сохраняет новый баланс пользователя одной транзакцией.
+        Возвращает идентификатор созданного заказа.
+        """
+
+
+class SqlOrderRepository(OrderRepository):
+    """Реализация на PostgreSQL через SQLAlchemy ORM."""
+
+    def __init__(self, db: Session):
+        self.db = db
+
+    def get_user_by_id(self, user_id: int) -> User | None:
+        row = self.db.query(UserModel).filter(UserModel.id == user_id).first()
+        return to_user(row)
+
+    def get_menu_item_by_id(self, item_id: int) -> MenuItem | None:
+        row = self.db.query(MenuItemModel).filter(MenuItemModel.id == item_id).first()
+        return to_menu_item(row)
+
+    def save_order_and_update_balance(
+        self, user_id: int, item_id: int, quantity: int, new_balance: float
+    ) -> int:
+        user_row = self.db.query(UserModel).filter(UserModel.id == user_id).first()
+        user_row.balance = new_balance
+        self.db.add(user_row)
+
+        new_order = OrderModel(
+            user_id=user_id,
+            item_id=item_id,
+            quantity=quantity,
+            status="processing",
+        )
+        self.db.add(new_order)
+
+        self.db.commit()  # UPDATE баланса и INSERT заказа - одна транзакция
+        self.db.refresh(new_order)
+        return new_order.id
+
+
+class InMemoryOrderRepository(OrderRepository):
+    """Реализация в памяти (для тестов и запуска без СУБД)."""
+
+    def __init__(self, store: MemoryStore | None = None):
+        self.store = store or MemoryStore()
+
+    def get_user_by_id(self, user_id: int) -> User | None:
+        return self.store.users.get(user_id)
+
+    def get_menu_item_by_id(self, item_id: int) -> MenuItem | None:
+        return self.store.menu_items.get(item_id)
+
+    def save_order_and_update_balance(
+        self, user_id: int, item_id: int, quantity: int, new_balance: float
+    ) -> int:
+        self.store.users[user_id].balance = new_balance
+        order = Order(
+            id=self.store.next_id(self.store.orders),
+            user_id=user_id,
+            item_id=item_id,
+            quantity=quantity,
+            status="processing",
+        )
+        self.store.orders[order.id] = order
+        return order.id
+"""
+
+app/modules/orders/router.py:
+"""
+"""
+Транспортный слой модуля orders (Круг 4).
+"""
+from fastapi import APIRouter, Depends, HTTPException
+
+from app.container import get_order_service
+from app.http_errors import to_http_error
+from app.modules.orders.service import OrderService
+from app.schemas import OrderCreate
+
+router = APIRouter()
+
+
+@router.post("/create")
+def create_order(payload: OrderCreate, service: OrderService = Depends(get_order_service)):
+    # Техническая валидация уровня транспортного протокола.
+    if payload.quantity <= 0:
+        raise HTTPException(status_code=400, detail="Количество должно быть больше нуля")
+
+    # Делегирование сценария слою бизнес-логики.
+    try:
+        order_id = service.create_order(
+            user_id=payload.user_id,
+            item_id=payload.item_id,
+            quantity=payload.quantity,
+        )
+    except ValueError as e:
+        # Трансляция внутреннего исключения в HTTP-статус.
+        raise to_http_error(e)
+
+    return {"status": "success", "order_id": order_id}
+"""
+
+app/modules/orders/service.py:
+"""
+"""
+Слой бизнес-логики модуля orders (Круги 1 и 2).
+Не зависит от fastapi и sqlalchemy.
+"""
+from app.exceptions import NotFoundError
+from app.modules.orders.repository import OrderRepository
+
+
+class OrderService:
+    """Бизнес-правила обработки заказов."""
+
+    def __init__(self, repository: OrderRepository):
+        # Внедрение зависимости через конструктор (инверсия зависимостей).
+        self.repository = repository
+
+    def create_order(self, user_id: int, item_id: int, quantity: int) -> int:
+        """
+        Сценарий оформления заказа. Возвращает идентификатор заказа.
+        Возбуждает ValueError (или его наследников) при нарушении бизнес-правил.
+        """
+        user = self.repository.get_user_by_id(user_id)
+        if not user:
+            raise NotFoundError("Пользователь не найден")
+
+        item = self.repository.get_menu_item_by_id(item_id)
+        if not item:
+            raise NotFoundError("Блюдо не найдено")
+        if not item.is_available:
+            raise ValueError("Блюдо недоступно")
+
+        total_cost = item.price * quantity
+        if user.balance < total_cost:
+            raise ValueError("Недостаточно средств на балансе студента")
+
+        new_balance = user.balance - total_cost
+        return self.repository.save_order_and_update_balance(
+            user_id, item_id, quantity, new_balance
+        )
+"""
+
+app/modules/users/__init__.py:
+"""
+"""
+
+app/modules/users/repository.py:
+"""
+"""
+Инфраструктурный слой модуля users (Круг 3).
+Абстрактный интерфейс и две реализации: SQL и in-memory.
+Бизнес-правил здесь нет.
+"""
+from abc import ABC, abstractmethod
+
+from sqlalchemy.orm import Session
+
+from app.entities import User
+from app.mappers import to_user
+from app.memory_store import MemoryStore
+from app.models import User as UserModel
+
+
+class UserRepository(ABC):
+    """Интерфейс доступа к данным пользователей."""
+
+    @abstractmethod
+    def get_user_by_id(self, user_id: int) -> User | None: ...
+
+    @abstractmethod
+    def get_user_by_email(self, email: str) -> User | None: ...
+
+    @abstractmethod
+    def save_user(self, email: str, phone: str | None) -> User:
+        """Создаёт пользователя с нулевым балансом."""
+
+    @abstractmethod
+    def update_user_balance(self, user_id: int, new_balance: float) -> None: ...
+
+
+class SqlUserRepository(UserRepository):
+    """Реализация на PostgreSQL через SQLAlchemy ORM."""
+
+    def __init__(self, db: Session):
+        self.db = db
+
+    def get_user_by_id(self, user_id: int) -> User | None:
+        row = self.db.query(UserModel).filter(UserModel.id == user_id).first()
+        return to_user(row)
+
+    def get_user_by_email(self, email: str) -> User | None:
+        row = self.db.query(UserModel).filter(UserModel.email == email).first()
+        return to_user(row)
+
+    def save_user(self, email: str, phone: str | None) -> User:
+        row = UserModel(email=email, phone=phone, balance=0.0, is_blocked=False)
+        self.db.add(row)
+        self.db.commit()
+        self.db.refresh(row)
+        return to_user(row)
+
+    def update_user_balance(self, user_id: int, new_balance: float) -> None:
+        row = self.db.query(UserModel).filter(UserModel.id == user_id).first()
+        row.balance = new_balance
+        self.db.add(row)
+        self.db.commit()
+
+
+class InMemoryUserRepository(UserRepository):
+    """Реализация в памяти (для тестов и запуска без СУБД)."""
+
+    def __init__(self, store: MemoryStore | None = None):
+        self.store = store or MemoryStore()
+
+    def get_user_by_id(self, user_id: int) -> User | None:
+        return self.store.users.get(user_id)
+
+    def get_user_by_email(self, email: str) -> User | None:
+        for user in self.store.users.values():
+            if user.email == email:
+                return user
+        return None
+
+    def save_user(self, email: str, phone: str | None) -> User:
+        user = User(
+            id=self.store.next_id(self.store.users),
+            email=email,
+            phone=phone,
+            balance=0.0,
+            is_blocked=False,
+        )
+        self.store.users[user.id] = user
+        return user
+
+    def update_user_balance(self, user_id: int, new_balance: float) -> None:
+        self.store.users[user_id].balance = new_balance
+"""
+
+app/modules/users/router.py:
+"""
+"""
+Транспортный слой модуля users (Круг 4).
+"""
+from fastapi import APIRouter, Depends, HTTPException
+
+from app.container import get_user_service
+from app.http_errors import to_http_error
+from app.modules.users.service import UserService
+from app.schemas import UserCreate
+
+router = APIRouter()
+
+
+@router.post("/register")
+def register_user(payload: UserCreate, service: UserService = Depends(get_user_service)):
+    # Техническая валидация (формат email уже проверил Pydantic).
+    if payload.phone and len(payload.phone) < 10:
+        raise HTTPException(status_code=400, detail="Некорректный формат номера телефона")
+
+    try:
+        user = service.register_user(payload.email, payload.phone)
+    except ValueError as e:
+        raise to_http_error(e)
+
+    return {"status": "success", "user_id": user.id, "email": user.email}
+
+
+@router.post("/{user_id}/topup")
+def top_up_balance(
+    user_id: int,
+    amount: float,
+    service: UserService = Depends(get_user_service),
+):
+    # Техническая проверка положительности суммы пополнения.
+    if amount <= 0:
+        raise HTTPException(status_code=400, detail="Сумма пополнения должна быть положительной")
+
+    try:
+        new_balance = service.top_up_balance(user_id, amount)
+    except ValueError as e:
+        raise to_http_error(e)
+
+    return {"status": "success", "new_balance": new_balance}
+"""
+
+app/modules/users/service.py:
+"""
+"""
+Слой бизнес-логики модуля users (Круги 1 и 2).
+Не зависит от fastapi и sqlalchemy.
+"""
+from app.entities import User
+from app.exceptions import ForbiddenError, NotFoundError
+from app.modules.users.repository import UserRepository
+
+MAX_TOPUP_AMOUNT = 50000
+
+
+class UserService:
+    """Бизнес-правила работы с пользователями."""
+
+    def __init__(self, repository: UserRepository):
+        # Внедрение зависимости через конструктор (инверсия зависимостей).
+        self.repository = repository
+
+    def register_user(self, email: str, phone: str | None) -> User:
+        """Регистрирует пользователя. ValueError, если email уже занят."""
+        if self.repository.get_user_by_email(email):
+            raise ValueError("Пользователь с таким email уже зарегистрирован")
+        return self.repository.save_user(email, phone)
+
+    def top_up_balance(self, user_id: int, amount: float) -> float:
+        """Пополняет баланс и возвращает новый баланс."""
+        user = self.repository.get_user_by_id(user_id)
+        if not user:
+            raise NotFoundError("Пользователь не найден")
+        if user.is_blocked:
+            raise ForbiddenError("Пользователь заблокирован. Пополнение невозможно")
+        if amount > MAX_TOPUP_AMOUNT:
+            raise ValueError("Максимальная сумма пополнения — 50000 рублей")
+
+        new_balance = user.balance + amount
+        self.repository.update_user_balance(user_id, new_balance)
+        return new_balance
+"""
+
+app/schemas.py:
+"""
+"""
+Pydantic-схемы для валидации входных и выходных данных.
+"""
+from pydantic import BaseModel, EmailStr
+
+
+class UserCreate(BaseModel):
+    email: EmailStr
+    phone: str | None = None
+
+
+class UserResponse(BaseModel):
+    id: int
+    email: str
+    balance: float
+
+    class Config:
+        from_attributes = True
+
+
+class MenuItemCreate(BaseModel):
+    name: str
+    price: float
+
+
+class MenuItemUpdate(BaseModel):
+    name: str | None = None
+    price: float | None = None
+    is_available: bool | None = None
+
+
+class OrderCreate(BaseModel):
+    user_id: int
+    item_id: int
+    quantity: int
+
+
+class DeliveryAssign(BaseModel):
+    order_id: int
+    courier_id: int
+"""
+
+docker-compose.yml:
+"""
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: sirius
+      POSTGRES_PASSWORD: sirius
+      POSTGRES_DB: sirius_food
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+
+volumes:
+  pg_data:
+"""
+
+pytest.ini:
+"""
+[pytest]
+pythonpath = .
+testpaths = tests
+"""
+
+README.md:
+"""
+# Сириус.Еда — рефакторинг в Clean Architecture
+
+Все четыре модуля (`users`, `menu`, `orders`, `delivery`) разделены на три слоя:
+`router.py`, `service.py`, `repository.py`. Внешнее поведение API не изменилось.
+
+## Что изменилось
+
+| Было (MVP) | Стало |
+| --- | --- |
+| HTTP, бизнес-правила и SQL в одной функции `router.py` | Три файла на модуль: `router.py` -> `service.py` -> `repository.py` |
+| Бизнес-логика работает с ORM-моделями | Бизнес-логика работает с сущностями `app/entities.py` (обычные dataclass) |
+| `HTTPException` внутри бизнес-проверок | Сервис бросает `ValueError` / `NotFoundError` / `ForbiddenError`, роутер переводит их в 400 / 404 / 403 |
+| Репозитория нет | Абстрактный интерфейс (ABC) в `repository.py` и две реализации: `Sql...` (PostgreSQL) и `InMemory...` |
+| Сборка слоёв в каждом обработчике | Одно место сборки: `app/container.py` (composition root) |
+
+Правило зависимостей: `service.py` не импортирует `fastapi` и `sqlalchemy`
+(это проверяет тест `tests/test_architecture.py`).
+
+## Структура
+
+```text
+app/
+├── main.py            # точка входа
+├── container.py       # сборка: репозиторий -> сервис (выбор реализации)
+├── database.py        # подключение к PostgreSQL
+├── models.py          # ORM-модели (SQLAlchemy)
+├── entities.py        # сущности предметной области (dataclass)
+├── mappers.py         # ORM-модель -> сущность
+├── memory_store.py    # хранилище для in-memory репозиториев
+├── exceptions.py      # доменные исключения (без fastapi)
+├── http_errors.py     # исключение -> HTTP-статус
+├── schemas.py         # Pydantic-схемы
+└── modules/
+    ├── users/     {router.py, service.py, repository.py}
+    ├── menu/      {router.py, service.py, repository.py}
+    ├── orders/    {router.py, service.py, repository.py}
+    └── delivery/  {router.py, service.py, repository.py}
+tests/                 # unit-тесты (без СУБД) и API-тест на in-memory
+```
+
+## Путь запроса через слои
+
+```mermaid
+sequenceDiagram
+    participant C as Клиент
+    participant R as router.py (API)
+    participant S as service.py (бизнес-логика)
+    participant P as repository.py (интерфейс)
+    participant D as SqlRepository / InMemoryRepository
+    C->>R: POST /orders/create
+    R->>R: техническая валидация (quantity > 0)
+    R->>S: create_order(user_id, item_id, quantity)
+    S->>P: get_user_by_id, get_menu_item_by_id
+    P->>D: реализация выбирается в container.py
+    D-->>S: сущности User, MenuItem
+    S->>S: бизнес-правила (доступность, баланс)
+    S->>P: save_order_and_update_balance
+    S-->>R: order_id или ValueError
+    R-->>C: 200 {"status": "success", ...} или 400/403/404
+```
+
+Текстовый вариант:
+
+```text
+HTTP -> router.py -> service.py -> repository.py (ABC) -> SQL / in-memory
+        (Круг 4)     (Круги 1-2)    (Круг 3)
+```
+
+## Запуск
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+sudo docker-compose up -d db redis
+uvicorn app.main:app --reload
+```
+
+Swagger: http://127.0.0.1:8000/docs (SQL-логи выводятся в терминал;
+отключить: `SQL_ECHO=0`).
+
+## Тесты
+
+```bash
+pytest -v
+```
+
+Тесты не требуют PostgreSQL: сервисы проверяются на `InMemory...` репозиториях.
+
+## Замена реализации репозитория
+
+Переключатель находится только в `app/container.py`, файлы `service.py` и
+`router.py` не меняются:
+
+```bash
+REPO_BACKEND=memory uvicorn app.main:app --reload   # без PostgreSQL, данные в памяти
+REPO_BACKEND=postgres uvicorn app.main:app --reload # по умолчанию
+```
+
+## Примечания
+
+- Технические проверки (`quantity > 0`, `amount > 0`, формат телефона, цена и длина
+  названия блюда) выполняются в роутере, бизнес-правила — в сервисе.
+- Заказ создаётся со статусом `processing`, а курьера можно назначить только на
+  заказ со статусом `paid` (так было в исходном MVP). Эндпоинта оплаты в проекте нет,
+  поэтому для ручной проверки `delivery` статус заказа меняют в БД:
+  `UPDATE orders SET status = 'paid' WHERE id = 1;`
+"""
+
+requirements.txt:
+"""
+fastapi>=0.110.0
+uvicorn[standard]>=0.29.0
+sqlalchemy>=2.0.29
+psycopg2-binary>=2.9.9
+pydantic[email]>=2.6.4
+python-dotenv>=1.0.1
+pytest>=8.0.0
+httpx>=0.27.0
+"""
+
+script.py:
+"""
+#!/usr/bin/env python3
+"""
+Генератор проекта «Сириус.Еда» (Лабораторная работа №2, Clean Architecture).
+
+Запуск в корне будущего проекта:
+    python3 setup_project.py
+"""
+import os
+
+FILES = {}
+
+# ----------------------------------------------------------------------------
+# Корневые файлы
+# ----------------------------------------------------------------------------
+FILES["requirements.txt"] = r'''
+fastapi>=0.110.0
+uvicorn[standard]>=0.29.0
+sqlalchemy>=2.0.29
+psycopg2-binary>=2.9.9
+pydantic[email]>=2.6.4
+python-dotenv>=1.0.1
+pytest>=8.0.0
+httpx>=0.27.0
+'''
+
+FILES["docker-compose.yml"] = r'''
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: sirius
+      POSTGRES_PASSWORD: sirius
+      POSTGRES_DB: sirius_food
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+
+volumes:
+  pg_data:
+'''
+
+FILES["pytest.ini"] = r'''
+[pytest]
+pythonpath = .
+testpaths = tests
+'''
+
+FILES[".gitignore"] = r'''
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+'''
+
+FILES["README.md"] = r'''
+# Сириус.Еда — рефакторинг в Clean Architecture
+
+Все четыре модуля (`users`, `menu`, `orders`, `delivery`) разделены на три слоя:
+`router.py`, `service.py`, `repository.py`. Внешнее поведение API не изменилось.
+
+## Что изменилось
+
+| Было (MVP) | Стало |
+| --- | --- |
+| HTTP, бизнес-правила и SQL в одной функции `router.py` | Три файла на модуль: `router.py` -> `service.py` -> `repository.py` |
+| Бизнес-логика работает с ORM-моделями | Бизнес-логика работает с сущностями `app/entities.py` (обычные dataclass) |
+| `HTTPException` внутри бизнес-проверок | Сервис бросает `ValueError` / `NotFoundError` / `ForbiddenError`, роутер переводит их в 400 / 404 / 403 |
+| Репозитория нет | Абстрактный интерфейс (ABC) в `repository.py` и две реализации: `Sql...` (PostgreSQL) и `InMemory...` |
+| Сборка слоёв в каждом обработчике | Одно место сборки: `app/container.py` (composition root) |
+
+Правило зависимостей: `service.py` не импортирует `fastapi` и `sqlalchemy`
+(это проверяет тест `tests/test_architecture.py`).
+
+## Структура
+
+```text
+app/
+├── main.py            # точка входа
+├── container.py       # сборка: репозиторий -> сервис (выбор реализации)
+├── database.py        # подключение к PostgreSQL
+├── models.py          # ORM-модели (SQLAlchemy)
+├── entities.py        # сущности предметной области (dataclass)
+├── mappers.py         # ORM-модель -> сущность
+├── memory_store.py    # хранилище для in-memory репозиториев
+├── exceptions.py      # доменные исключения (без fastapi)
+├── http_errors.py     # исключение -> HTTP-статус
+├── schemas.py         # Pydantic-схемы
+└── modules/
+    ├── users/     {router.py, service.py, repository.py}
+    ├── menu/      {router.py, service.py, repository.py}
+    ├── orders/    {router.py, service.py, repository.py}
+    └── delivery/  {router.py, service.py, repository.py}
+tests/                 # unit-тесты (без СУБД) и API-тест на in-memory
+```
+
+## Путь запроса через слои
+
+```mermaid
+sequenceDiagram
+    participant C as Клиент
+    participant R as router.py (API)
+    participant S as service.py (бизнес-логика)
+    participant P as repository.py (интерфейс)
+    participant D as SqlRepository / InMemoryRepository
+    C->>R: POST /orders/create
+    R->>R: техническая валидация (quantity > 0)
+    R->>S: create_order(user_id, item_id, quantity)
+    S->>P: get_user_by_id, get_menu_item_by_id
+    P->>D: реализация выбирается в container.py
+    D-->>S: сущности User, MenuItem
+    S->>S: бизнес-правила (доступность, баланс)
+    S->>P: save_order_and_update_balance
+    S-->>R: order_id или ValueError
+    R-->>C: 200 {"status": "success", ...} или 400/403/404
+```
+
+Текстовый вариант:
+
+```text
+HTTP -> router.py -> service.py -> repository.py (ABC) -> SQL / in-memory
+        (Круг 4)     (Круги 1-2)    (Круг 3)
+```
+
+## Запуск
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+sudo docker-compose up -d db redis
+uvicorn app.main:app --reload
+```
+
+Swagger: http://127.0.0.1:8000/docs (SQL-логи выводятся в терминал;
+отключить: `SQL_ECHO=0`).
+
+## Тесты
+
+```bash
+pytest -v
+```
+
+Тесты не требуют PostgreSQL: сервисы проверяются на `InMemory...` репозиториях.
+
+## Замена реализации репозитория
+
+Переключатель находится только в `app/container.py`, файлы `service.py` и
+`router.py` не меняются:
+
+```bash
+REPO_BACKEND=memory uvicorn app.main:app --reload   # без PostgreSQL, данные в памяти
+REPO_BACKEND=postgres uvicorn app.main:app --reload # по умолчанию
+```
+
+## Примечания
+
+- Технические проверки (`quantity > 0`, `amount > 0`, формат телефона, цена и длина
+  названия блюда) выполняются в роутере, бизнес-правила — в сервисе.
+- Заказ создаётся со статусом `processing`, а курьера можно назначить только на
+  заказ со статусом `paid` (так было в исходном MVP). Эндпоинта оплаты в проекте нет,
+  поэтому для ручной проверки `delivery` статус заказа меняют в БД:
+  `UPDATE orders SET status = 'paid' WHERE id = 1;`
+'''
+
+# ----------------------------------------------------------------------------
+# Пакет app: общие файлы
+# ----------------------------------------------------------------------------
+FILES["app/__init__.py"] = ""
+FILES["app/modules/__init__.py"] = ""
+
+FILES["app/main.py"] = r'''
+"""
+Точка входа приложения. Выполняет инициализацию FastAPI,
+подключение модулей и создание таблиц базы данных.
+"""
+from fastapi import FastAPI
+
+from app import models  # noqa: F401  (регистрирует таблицы в Base.metadata)
+from app.container import use_memory_backend
+from app.database import Base, engine
+from app.modules.users.router import router as users_router
+from app.modules.menu.router import router as menu_router
+from app.modules.orders.router import router as orders_router
+from app.modules.delivery.router import router as delivery_router
+
+if not use_memory_backend():
+    Base.metadata.create_all(bind=engine)
+
+app = FastAPI(title="Sirius.Food API")
+
+app.include_router(users_router, prefix="/users", tags=["users"])
+app.include_router(menu_router, prefix="/menu", tags=["menu"])
+app.include_router(orders_router, prefix="/orders", tags=["orders"])
+app.include_router(delivery_router, prefix="/delivery", tags=["delivery"])
+'''
+
+FILES["app/database.py"] = r'''
+"""
+Модуль инициализации подключения к СУБД PostgreSQL.
+"""
+import os
+
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, declarative_base
+
+DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "postgresql://sirius:sirius@localhost:5432/sirius_food",
+)
+
+# echo=True выводит SQL-запросы (INSERT, UPDATE) в терминал; отключается SQL_ECHO=0
+engine = create_engine(DATABASE_URL, echo=os.getenv("SQL_ECHO", "1") == "1")
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
+
+
+def get_db():
+    """Генератор сессии базы данных для использования в Depends."""
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+'''
+
+FILES["app/models.py"] = r'''
+"""
+Определение ORM-моделей предметной области «Сириус.Еда».
+Используются только инфраструктурным слоем (repository.py).
+"""
+from sqlalchemy import Column, Integer, String, Float, Boolean, ForeignKey
+from sqlalchemy.orm import relationship
+
+from app.database import Base
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String, unique=True, nullable=False)
+    phone = Column(String, nullable=True)
+    balance = Column(Float, default=0.0)
+    is_blocked = Column(Boolean, default=False)
+
+
+class MenuItem(Base):
+    __tablename__ = "menu_items"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    price = Column(Float, nullable=False)
+    is_available = Column(Boolean, default=True)
+
+
+class Order(Base):
+    __tablename__ = "orders"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    item_id = Column(Integer, ForeignKey("menu_items.id"))
+    quantity = Column(Integer, nullable=False)
+    status = Column(String, default="processing")
+
+    user = relationship("User")
+    item = relationship("MenuItem")
+
+
+class Delivery(Base):
+    __tablename__ = "deliveries"
+
+    id = Column(Integer, primary_key=True, index=True)
+    order_id = Column(Integer, ForeignKey("orders.id"))
+    courier_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    status = Column(String, default="pending")
+
+    order = relationship("Order")
+    courier = relationship("User")
+'''
+
+FILES["app/schemas.py"] = r'''
+"""
+Pydantic-схемы для валидации входных и выходных данных.
+"""
+from pydantic import BaseModel, EmailStr
+
+
+class UserCreate(BaseModel):
+    email: EmailStr
+    phone: str | None = None
+
+
+class UserResponse(BaseModel):
+    id: int
+    email: str
+    balance: float
+
+    class Config:
+        from_attributes = True
+
+
+class MenuItemCreate(BaseModel):
+    name: str
+    price: float
+
+
+class MenuItemUpdate(BaseModel):
+    name: str | None = None
+    price: float | None = None
+    is_available: bool | None = None
+
+
+class OrderCreate(BaseModel):
+    user_id: int
+    item_id: int
+    quantity: int
+
+
+class DeliveryAssign(BaseModel):
+    order_id: int
+    courier_id: int
+'''
+
+FILES["app/entities.py"] = r'''
+"""
+Сущности предметной области (Круг 1 модели Мартина).
+Обычные dataclass: никаких зависимостей от ORM и веб-фреймворка.
+"""
+from dataclasses import dataclass
+
+
+@dataclass
+class User:
+    id: int
+    email: str
+    phone: str | None
+    balance: float
+    is_blocked: bool
+
+
+@dataclass
+class MenuItem:
+    id: int
+    name: str
+    price: float
+    is_available: bool
+
+
+@dataclass
+class Order:
+    id: int
+    user_id: int
+    item_id: int
+    quantity: int
+    status: str
+
+
+@dataclass
+class Delivery:
+    id: int
+    order_id: int
+    courier_id: int | None
+    status: str
+'''
+
+FILES["app/exceptions.py"] = r'''
+"""
+Доменные исключения. Наследуются от ValueError, поэтому сервис
+по-прежнему «возбуждает ValueError при нарушении бизнес-правил».
+Обычный ValueError -> HTTP 400, NotFoundError -> 404, ForbiddenError -> 403.
+"""
+
+
+class NotFoundError(ValueError):
+    """Запрошенный объект не найден."""
+
+
+class ForbiddenError(ValueError):
+    """Операция запрещена (например, пользователь заблокирован)."""
+'''
+
+FILES["app/http_errors.py"] = r'''
+"""
+Трансляция доменных исключений в HTTP-ответы (транспортный слой).
+"""
+from fastapi import HTTPException
+
+from app.exceptions import ForbiddenError, NotFoundError
+
+
+def to_http_error(error: ValueError) -> HTTPException:
+    if isinstance(error, NotFoundError):
+        status = 404
+    elif isinstance(error, ForbiddenError):
+        status = 403
+    else:
+        status = 400
+    return HTTPException(status_code=status, detail=str(error))
+'''
+
+FILES["app/mappers.py"] = r'''
+"""
+Преобразование ORM-моделей в сущности предметной области.
+Используется только в SQL-репозиториях.
+"""
+from app import entities, models
+
+
+def to_user(row: models.User | None) -> entities.User | None:
+    if row is None:
+        return None
+    return entities.User(
+        id=row.id,
+        email=row.email,
+        phone=row.phone,
+        balance=row.balance,
+        is_blocked=row.is_blocked,
+    )
+
+
+def to_menu_item(row: models.MenuItem | None) -> entities.MenuItem | None:
+    if row is None:
+        return None
+    return entities.MenuItem(
+        id=row.id,
+        name=row.name,
+        price=row.price,
+        is_available=row.is_available,
+    )
+
+
+def to_order(row: models.Order | None) -> entities.Order | None:
+    if row is None:
+        return None
+    return entities.Order(
+        id=row.id,
+        user_id=row.user_id,
+        item_id=row.item_id,
+        quantity=row.quantity,
+        status=row.status,
+    )
+
+
+def to_delivery(row: models.Delivery | None) -> entities.Delivery | None:
+    if row is None:
+        return None
+    return entities.Delivery(
+        id=row.id,
+        order_id=row.order_id,
+        courier_id=row.courier_id,
+        status=row.status,
+    )
+'''
+
+FILES["app/memory_store.py"] = r'''
+"""
+Хранилище в памяти для InMemory-репозиториев (тесты и запуск без PostgreSQL).
+Общее для всех модулей, чтобы orders видел пользователей и блюда.
+"""
+from app.entities import Delivery, MenuItem, Order, User
+
+
+class MemoryStore:
+    def __init__(self):
+        self.users: dict[int, User] = {}
+        self.menu_items: dict[int, MenuItem] = {}
+        self.orders: dict[int, Order] = {}
+        self.deliveries: dict[int, Delivery] = {}
+
+    @staticmethod
+    def next_id(table: dict) -> int:
+        return max(table, default=0) + 1
+
+    def clear(self) -> None:
+        self.users.clear()
+        self.menu_items.clear()
+        self.orders.clear()
+        self.deliveries.clear()
+
+
+# Общий экземпляр для приложения (REPO_BACKEND=memory)
+memory_store = MemoryStore()
+'''
+
+FILES["app/container.py"] = r'''
+"""
+Точка сборки слоёв (composition root).
+
+Единственное место, которое знает, какая реализация репозитория используется.
+Для замены хранилища достаточно переключить REPO_BACKEND:
+service.py и router.py при этом не меняются.
+
+    REPO_BACKEND=postgres  (по умолчанию) - PostgreSQL через SQLAlchemy
+    REPO_BACKEND=memory                    - хранение в памяти
+"""
+import os
+
+from fastapi import Depends
+from sqlalchemy.orm import Session
+
+from app.database import get_db
+from app.memory_store import memory_store
+from app.modules.delivery.repository import (
+    InMemoryDeliveryRepository,
+    SqlDeliveryRepository,
+)
+from app.modules.delivery.service import DeliveryService
+from app.modules.menu.repository import InMemoryMenuRepository, SqlMenuRepository
+from app.modules.menu.service import MenuService
+from app.modules.orders.repository import (
+    InMemoryOrderRepository,
+    SqlOrderRepository,
+)
+from app.modules.orders.service import OrderService
+from app.modules.users.repository import InMemoryUserRepository, SqlUserRepository
+from app.modules.users.service import UserService
+
+
+def use_memory_backend() -> bool:
+    return os.getenv("REPO_BACKEND", "postgres").lower() == "memory"
+
+
+def get_user_service(db: Session = Depends(get_db)) -> UserService:
+    if use_memory_backend():
+        return UserService(InMemoryUserRepository(memory_store))
+    return UserService(SqlUserRepository(db))
+
+
+def get_menu_service(db: Session = Depends(get_db)) -> MenuService:
+    if use_memory_backend():
+        return MenuService(InMemoryMenuRepository(memory_store))
+    return MenuService(SqlMenuRepository(db))
+
+
+def get_order_service(db: Session = Depends(get_db)) -> OrderService:
+    if use_memory_backend():
+        return OrderService(InMemoryOrderRepository(memory_store))
+    return OrderService(SqlOrderRepository(db))
+
+
+def get_delivery_service(db: Session = Depends(get_db)) -> DeliveryService:
+    if use_memory_backend():
+        return DeliveryService(InMemoryDeliveryRepository(memory_store))
+    return DeliveryService(SqlDeliveryRepository(db))
+'''
+
+# ----------------------------------------------------------------------------
+# Модуль users
+# ----------------------------------------------------------------------------
+FILES["app/modules/users/__init__.py"] = ""
+
+FILES["app/modules/users/repository.py"] = r'''
+"""
+Инфраструктурный слой модуля users (Круг 3).
+Абстрактный интерфейс и две реализации: SQL и in-memory.
+Бизнес-правил здесь нет.
+"""
+from abc import ABC, abstractmethod
+
+from sqlalchemy.orm import Session
+
+from app.entities import User
+from app.mappers import to_user
+from app.memory_store import MemoryStore
+from app.models import User as UserModel
+
+
+class UserRepository(ABC):
+    """Интерфейс доступа к данным пользователей."""
+
+    @abstractmethod
+    def get_user_by_id(self, user_id: int) -> User | None: ...
+
+    @abstractmethod
+    def get_user_by_email(self, email: str) -> User | None: ...
+
+    @abstractmethod
+    def save_user(self, email: str, phone: str | None) -> User:
+        """Создаёт пользователя с нулевым балансом."""
+
+    @abstractmethod
+    def update_user_balance(self, user_id: int, new_balance: float) -> None: ...
+
+
+class SqlUserRepository(UserRepository):
+    """Реализация на PostgreSQL через SQLAlchemy ORM."""
+
+    def __init__(self, db: Session):
+        self.db = db
+
+    def get_user_by_id(self, user_id: int) -> User | None:
+        row = self.db.query(UserModel).filter(UserModel.id == user_id).first()
+        return to_user(row)
+
+    def get_user_by_email(self, email: str) -> User | None:
+        row = self.db.query(UserModel).filter(UserModel.email == email).first()
+        return to_user(row)
+
+    def save_user(self, email: str, phone: str | None) -> User:
+        row = UserModel(email=email, phone=phone, balance=0.0, is_blocked=False)
+        self.db.add(row)
+        self.db.commit()
+        self.db.refresh(row)
+        return to_user(row)
+
+    def update_user_balance(self, user_id: int, new_balance: float) -> None:
+        row = self.db.query(UserModel).filter(UserModel.id == user_id).first()
+        row.balance = new_balance
+        self.db.add(row)
+        self.db.commit()
+
+
+class InMemoryUserRepository(UserRepository):
+    """Реализация в памяти (для тестов и запуска без СУБД)."""
+
+    def __init__(self, store: MemoryStore | None = None):
+        self.store = store or MemoryStore()
+
+    def get_user_by_id(self, user_id: int) -> User | None:
+        return self.store.users.get(user_id)
+
+    def get_user_by_email(self, email: str) -> User | None:
+        for user in self.store.users.values():
+            if user.email == email:
+                return user
+        return None
+
+    def save_user(self, email: str, phone: str | None) -> User:
+        user = User(
+            id=self.store.next_id(self.store.users),
+            email=email,
+            phone=phone,
+            balance=0.0,
+            is_blocked=False,
+        )
+        self.store.users[user.id] = user
+        return user
+
+    def update_user_balance(self, user_id: int, new_balance: float) -> None:
+        self.store.users[user_id].balance = new_balance
+'''
+
+FILES["app/modules/users/service.py"] = r'''
+"""
+Слой бизнес-логики модуля users (Круги 1 и 2).
+Не зависит от fastapi и sqlalchemy.
+"""
+from app.entities import User
+from app.exceptions import ForbiddenError, NotFoundError
+from app.modules.users.repository import UserRepository
+
+MAX_TOPUP_AMOUNT = 50000
+
+
+class UserService:
+    """Бизнес-правила работы с пользователями."""
+
+    def __init__(self, repository: UserRepository):
+        # Внедрение зависимости через конструктор (инверсия зависимостей).
+        self.repository = repository
+
+    def register_user(self, email: str, phone: str | None) -> User:
+        """Регистрирует пользователя. ValueError, если email уже занят."""
+        if self.repository.get_user_by_email(email):
+            raise ValueError("Пользователь с таким email уже зарегистрирован")
+        return self.repository.save_user(email, phone)
+
+    def top_up_balance(self, user_id: int, amount: float) -> float:
+        """Пополняет баланс и возвращает новый баланс."""
+        user = self.repository.get_user_by_id(user_id)
+        if not user:
+            raise NotFoundError("Пользователь не найден")
+        if user.is_blocked:
+            raise ForbiddenError("Пользователь заблокирован. Пополнение невозможно")
+        if amount > MAX_TOPUP_AMOUNT:
+            raise ValueError("Максимальная сумма пополнения — 50000 рублей")
+
+        new_balance = user.balance + amount
+        self.repository.update_user_balance(user_id, new_balance)
+        return new_balance
+'''
+
+FILES["app/modules/users/router.py"] = r'''
+"""
+Транспортный слой модуля users (Круг 4).
+"""
+from fastapi import APIRouter, Depends, HTTPException
+
+from app.container import get_user_service
+from app.http_errors import to_http_error
+from app.modules.users.service import UserService
+from app.schemas import UserCreate
+
+router = APIRouter()
+
+
+@router.post("/register")
+def register_user(payload: UserCreate, service: UserService = Depends(get_user_service)):
+    # Техническая валидация (формат email уже проверил Pydantic).
+    if payload.phone and len(payload.phone) < 10:
+        raise HTTPException(status_code=400, detail="Некорректный формат номера телефона")
+
+    try:
+        user = service.register_user(payload.email, payload.phone)
+    except ValueError as e:
+        raise to_http_error(e)
+
+    return {"status": "success", "user_id": user.id, "email": user.email}
+
+
+@router.post("/{user_id}/topup")
+def top_up_balance(
+    user_id: int,
+    amount: float,
+    service: UserService = Depends(get_user_service),
+):
+    # Техническая проверка положительности суммы пополнения.
+    if amount <= 0:
+        raise HTTPException(status_code=400, detail="Сумма пополнения должна быть положительной")
+
+    try:
+        new_balance = service.top_up_balance(user_id, amount)
+    except ValueError as e:
+        raise to_http_error(e)
+
+    return {"status": "success", "new_balance": new_balance}
+'''
+
+# ----------------------------------------------------------------------------
+# Модуль menu
+# ----------------------------------------------------------------------------
+FILES["app/modules/menu/__init__.py"] = ""
+
+FILES["app/modules/menu/repository.py"] = r'''
+"""
+Инфраструктурный слой модуля menu (Круг 3).
+Абстрактный интерфейс и две реализации: SQL и in-memory.
+"""
+from abc import ABC, abstractmethod
+
+from sqlalchemy.orm import Session
+
+from app.entities import MenuItem
+from app.mappers import to_menu_item
+from app.memory_store import MemoryStore
+from app.models import MenuItem as MenuItemModel
+
+
+class MenuRepository(ABC):
+    """Интерфейс доступа к данным меню."""
+
+    @abstractmethod
+    def get_menu_item_by_id(self, item_id: int) -> MenuItem | None: ...
+
+    @abstractmethod
+    def get_menu_item_by_name(self, name: str) -> MenuItem | None: ...
+
+    @abstractmethod
+    def save_menu_item(self, name: str, price: float) -> MenuItem:
+        """Создаёт доступное блюдо."""
+
+    @abstractmethod
+    def update_menu_item(self, item: MenuItem) -> None:
+        """Сохраняет изменённые поля блюда."""
+
+
+class SqlMenuRepository(MenuRepository):
+    """Реализация на PostgreSQL через SQLAlchemy ORM."""
+
+    def __init__(self, db: Session):
+        self.db = db
+
+    def get_menu_item_by_id(self, item_id: int) -> MenuItem | None:
+        row = self.db.query(MenuItemModel).filter(MenuItemModel.id == item_id).first()
+        return to_menu_item(row)
+
+    def get_menu_item_by_name(self, name: str) -> MenuItem | None:
+        row = self.db.query(MenuItemModel).filter(MenuItemModel.name == name).first()
+        return to_menu_item(row)
+
+    def save_menu_item(self, name: str, price: float) -> MenuItem:
+        row = MenuItemModel(name=name, price=price, is_available=True)
+        self.db.add(row)
+        self.db.commit()
+        self.db.refresh(row)
+        return to_menu_item(row)
+
+    def update_menu_item(self, item: MenuItem) -> None:
+        row = self.db.query(MenuItemModel).filter(MenuItemModel.id == item.id).first()
+        row.name = item.name
+        row.price = item.price
+        row.is_available = item.is_available
+        self.db.add(row)
+        self.db.commit()
+
+
+class InMemoryMenuRepository(MenuRepository):
+    """Реализация в памяти (для тестов и запуска без СУБД)."""
+
+    def __init__(self, store: MemoryStore | None = None):
+        self.store = store or MemoryStore()
+
+    def get_menu_item_by_id(self, item_id: int) -> MenuItem | None:
+        return self.store.menu_items.get(item_id)
+
+    def get_menu_item_by_name(self, name: str) -> MenuItem | None:
+        for item in self.store.menu_items.values():
+            if item.name == name:
+                return item
+        return None
+
+    def save_menu_item(self, name: str, price: float) -> MenuItem:
+        item = MenuItem(
+            id=self.store.next_id(self.store.menu_items),
+            name=name,
+            price=price,
+            is_available=True,
+        )
+        self.store.menu_items[item.id] = item
+        return item
+
+    def update_menu_item(self, item: MenuItem) -> None:
+        self.store.menu_items[item.id] = item
+'''
+
+FILES["app/modules/menu/service.py"] = r'''
+"""
+Слой бизнес-логики модуля menu (Круги 1 и 2).
+Не зависит от fastapi и sqlalchemy.
+"""
+from app.exceptions import NotFoundError
+from app.modules.menu.repository import MenuRepository
+
+
+class MenuService:
+    """Бизнес-правила работы с меню."""
+
+    def __init__(self, repository: MenuRepository):
+        # Внедрение зависимости через конструктор (инверсия зависимостей).
+        self.repository = repository
+
+    def create_menu_item(self, name: str, price: float) -> int:
+        """Создаёт блюдо и возвращает его id. ValueError, если название занято."""
+        if self.repository.get_menu_item_by_name(name):
+            raise ValueError("Блюдо с таким названием уже существует")
+        return self.repository.save_menu_item(name, price).id
+
+    def update_menu_item(
+        self,
+        item_id: int,
+        name: str | None,
+        price: float | None,
+        is_available: bool | None,
+    ) -> int:
+        """Обновляет переданные поля блюда и возвращает его id."""
+        item = self.repository.get_menu_item_by_id(item_id)
+        if not item:
+            raise NotFoundError("Блюдо не найдено")
+
+        if name is not None:
+            item.name = name
+        if price is not None:
+            item.price = price
+        if is_available is not None:
+            item.is_available = is_available
+
+        self.repository.update_menu_item(item)
+        return item.id
+'''
+
+FILES["app/modules/menu/router.py"] = r'''
+"""
+Транспортный слой модуля menu (Круг 4).
+"""
+from fastapi import APIRouter, Depends, HTTPException
+
+from app.container import get_menu_service
+from app.http_errors import to_http_error
+from app.modules.menu.service import MenuService
+from app.schemas import MenuItemCreate, MenuItemUpdate
+
+router = APIRouter()
+
+
+@router.post("/items")
+def create_menu_item(payload: MenuItemCreate, service: MenuService = Depends(get_menu_service)):
+    # Техническая валидация цены и названия.
+    if payload.price <= 0:
+        raise HTTPException(status_code=400, detail="Цена должна быть положительной")
+    if len(payload.name) < 2:
+        raise HTTPException(status_code=400, detail="Название блюда слишком короткое")
+
+    try:
+        item_id = service.create_menu_item(payload.name, payload.price)
+    except ValueError as e:
+        raise to_http_error(e)
+
+    return {"status": "success", "item_id": item_id}
+
+
+@router.patch("/items/{item_id}")
+def update_menu_item(
+    item_id: int,
+    payload: MenuItemUpdate,
+    service: MenuService = Depends(get_menu_service),
+):
+    # Техническая валидация нового значения цены.
+    if payload.price is not None and payload.price <= 0:
+        raise HTTPException(status_code=400, detail="Цена должна быть положительной")
+
+    try:
+        updated_id = service.update_menu_item(
+            item_id,
+            name=payload.name,
+            price=payload.price,
+            is_available=payload.is_available,
+        )
+    except ValueError as e:
+        raise to_http_error(e)
+
+    return {"status": "success", "item_id": updated_id}
+'''
+
+# ----------------------------------------------------------------------------
+# Модуль orders
+# ----------------------------------------------------------------------------
+FILES["app/modules/orders/__init__.py"] = ""
+
+FILES["app/modules/orders/repository.py"] = r'''
+"""
+Инфраструктурный слой модуля orders (Круг 3).
+Абстрактный интерфейс и две реализации: SQL и in-memory.
+Класс отвечает только за ввод-вывод, бизнес-правил здесь нет.
+"""
+from abc import ABC, abstractmethod
+
+from sqlalchemy.orm import Session
+
+from app.entities import MenuItem, Order, User
+from app.mappers import to_menu_item, to_user
+from app.memory_store import MemoryStore
+from app.models import MenuItem as MenuItemModel
+from app.models import Order as OrderModel
+from app.models import User as UserModel
+
+
+class OrderRepository(ABC):
+    """Интерфейс доступа к данным, нужным сценарию оформления заказа."""
+
+    @abstractmethod
+    def get_user_by_id(self, user_id: int) -> User | None:
+        """Извлечение пользователя по идентификатору."""
+
+    @abstractmethod
+    def get_menu_item_by_id(self, item_id: int) -> MenuItem | None:
+        """Извлечение блюда из меню по идентификатору."""
+
+    @abstractmethod
+    def save_order_and_update_balance(
+        self, user_id: int, item_id: int, quantity: int, new_balance: float
+    ) -> int:
+        """
+        Создаёт заказ и сохраняет новый баланс пользователя одной транзакцией.
+        Возвращает идентификатор созданного заказа.
+        """
+
+
+class SqlOrderRepository(OrderRepository):
+    """Реализация на PostgreSQL через SQLAlchemy ORM."""
+
+    def __init__(self, db: Session):
+        self.db = db
+
+    def get_user_by_id(self, user_id: int) -> User | None:
+        row = self.db.query(UserModel).filter(UserModel.id == user_id).first()
+        return to_user(row)
+
+    def get_menu_item_by_id(self, item_id: int) -> MenuItem | None:
+        row = self.db.query(MenuItemModel).filter(MenuItemModel.id == item_id).first()
+        return to_menu_item(row)
+
+    def save_order_and_update_balance(
+        self, user_id: int, item_id: int, quantity: int, new_balance: float
+    ) -> int:
+        user_row = self.db.query(UserModel).filter(UserModel.id == user_id).first()
+        user_row.balance = new_balance
+        self.db.add(user_row)
+
+        new_order = OrderModel(
+            user_id=user_id,
+            item_id=item_id,
+            quantity=quantity,
+            status="processing",
+        )
+        self.db.add(new_order)
+
+        self.db.commit()  # UPDATE баланса и INSERT заказа - одна транзакция
+        self.db.refresh(new_order)
+        return new_order.id
+
+
+class InMemoryOrderRepository(OrderRepository):
+    """Реализация в памяти (для тестов и запуска без СУБД)."""
+
+    def __init__(self, store: MemoryStore | None = None):
+        self.store = store or MemoryStore()
+
+    def get_user_by_id(self, user_id: int) -> User | None:
+        return self.store.users.get(user_id)
+
+    def get_menu_item_by_id(self, item_id: int) -> MenuItem | None:
+        return self.store.menu_items.get(item_id)
+
+    def save_order_and_update_balance(
+        self, user_id: int, item_id: int, quantity: int, new_balance: float
+    ) -> int:
+        self.store.users[user_id].balance = new_balance
+        order = Order(
+            id=self.store.next_id(self.store.orders),
+            user_id=user_id,
+            item_id=item_id,
+            quantity=quantity,
+            status="processing",
+        )
+        self.store.orders[order.id] = order
+        return order.id
+'''
+
+FILES["app/modules/orders/service.py"] = r'''
+"""
+Слой бизнес-логики модуля orders (Круги 1 и 2).
+Не зависит от fastapi и sqlalchemy.
+"""
+from app.exceptions import NotFoundError
+from app.modules.orders.repository import OrderRepository
+
+
+class OrderService:
+    """Бизнес-правила обработки заказов."""
+
+    def __init__(self, repository: OrderRepository):
+        # Внедрение зависимости через конструктор (инверсия зависимостей).
+        self.repository = repository
+
+    def create_order(self, user_id: int, item_id: int, quantity: int) -> int:
+        """
+        Сценарий оформления заказа. Возвращает идентификатор заказа.
+        Возбуждает ValueError (или его наследников) при нарушении бизнес-правил.
+        """
+        user = self.repository.get_user_by_id(user_id)
+        if not user:
+            raise NotFoundError("Пользователь не найден")
+
+        item = self.repository.get_menu_item_by_id(item_id)
+        if not item:
+            raise NotFoundError("Блюдо не найдено")
+        if not item.is_available:
+            raise ValueError("Блюдо недоступно")
+
+        total_cost = item.price * quantity
+        if user.balance < total_cost:
+            raise ValueError("Недостаточно средств на балансе студента")
+
+        new_balance = user.balance - total_cost
+        return self.repository.save_order_and_update_balance(
+            user_id, item_id, quantity, new_balance
+        )
+'''
+
+FILES["app/modules/orders/router.py"] = r'''
+"""
+Транспортный слой модуля orders (Круг 4).
+"""
+from fastapi import APIRouter, Depends, HTTPException
+
+from app.container import get_order_service
+from app.http_errors import to_http_error
+from app.modules.orders.service import OrderService
+from app.schemas import OrderCreate
+
+router = APIRouter()
+
+
+@router.post("/create")
+def create_order(payload: OrderCreate, service: OrderService = Depends(get_order_service)):
+    # Техническая валидация уровня транспортного протокола.
+    if payload.quantity <= 0:
+        raise HTTPException(status_code=400, detail="Количество должно быть больше нуля")
+
+    # Делегирование сценария слою бизнес-логики.
+    try:
+        order_id = service.create_order(
+            user_id=payload.user_id,
+            item_id=payload.item_id,
+            quantity=payload.quantity,
+        )
+    except ValueError as e:
+        # Трансляция внутреннего исключения в HTTP-статус.
+        raise to_http_error(e)
+
+    return {"status": "success", "order_id": order_id}
+'''
+
+# ----------------------------------------------------------------------------
+# Модуль delivery
+# ----------------------------------------------------------------------------
+FILES["app/modules/delivery/__init__.py"] = ""
+
+FILES["app/modules/delivery/repository.py"] = r'''
+"""
+Инфраструктурный слой модуля delivery (Круг 3).
+Абстрактный интерфейс и две реализации: SQL и in-memory.
+"""
+from abc import ABC, abstractmethod
+
+from sqlalchemy.orm import Session
+
+from app.entities import Delivery, Order, User
+from app.mappers import to_delivery, to_order, to_user
+from app.memory_store import MemoryStore
+from app.models import Delivery as DeliveryModel
+from app.models import Order as OrderModel
+from app.models import User as UserModel
+
+
+class DeliveryRepository(ABC):
+    """Интерфейс доступа к данным доставки."""
+
+    @abstractmethod
+    def get_order_by_id(self, order_id: int) -> Order | None: ...
+
+    @abstractmethod
+    def get_user_by_id(self, user_id: int) -> User | None: ...
+
+    @abstractmethod
+    def get_delivery_by_id(self, delivery_id: int) -> Delivery | None: ...
+
+    @abstractmethod
+    def get_active_delivery_by_courier(self, courier_id: int) -> Delivery | None:
+        """Доставка курьера со статусом in_progress (если есть)."""
+
+    @abstractmethod
+    def save_delivery(self, order_id: int, courier_id: int) -> Delivery:
+        """Создаёт доставку со статусом in_progress."""
+
+    @abstractmethod
+    def save_completion(self, delivery: Delivery, order: Order | None) -> None:
+        """Сохраняет статус доставки и (если есть) заказа одной транзакцией."""
+
+
+class SqlDeliveryRepository(DeliveryRepository):
+    """Реализация на PostgreSQL через SQLAlchemy ORM."""
+
+    def __init__(self, db: Session):
+        self.db = db
+
+    def get_order_by_id(self, order_id: int) -> Order | None:
+        row = self.db.query(OrderModel).filter(OrderModel.id == order_id).first()
+        return to_order(row)
+
+    def get_user_by_id(self, user_id: int) -> User | None:
+        row = self.db.query(UserModel).filter(UserModel.id == user_id).first()
+        return to_user(row)
+
+    def get_delivery_by_id(self, delivery_id: int) -> Delivery | None:
+        row = self.db.query(DeliveryModel).filter(DeliveryModel.id == delivery_id).first()
+        return to_delivery(row)
+
+    def get_active_delivery_by_courier(self, courier_id: int) -> Delivery | None:
+        row = (
+            self.db.query(DeliveryModel)
+            .filter(
+                DeliveryModel.courier_id == courier_id,
+                DeliveryModel.status == "in_progress",
+            )
+            .first()
+        )
+        return to_delivery(row)
+
+    def save_delivery(self, order_id: int, courier_id: int) -> Delivery:
+        row = DeliveryModel(order_id=order_id, courier_id=courier_id, status="in_progress")
+        self.db.add(row)
+        self.db.commit()
+        self.db.refresh(row)
+        return to_delivery(row)
+
+    def save_completion(self, delivery: Delivery, order: Order | None) -> None:
+        delivery_row = (
+            self.db.query(DeliveryModel).filter(DeliveryModel.id == delivery.id).first()
+        )
+        delivery_row.status = delivery.status
+        self.db.add(delivery_row)
+
+        if order is not None:
+            order_row = self.db.query(OrderModel).filter(OrderModel.id == order.id).first()
+            order_row.status = order.status
+            self.db.add(order_row)
+
+        self.db.commit()
+
+
+class InMemoryDeliveryRepository(DeliveryRepository):
+    """Реализация в памяти (для тестов и запуска без СУБД)."""
+
+    def __init__(self, store: MemoryStore | None = None):
+        self.store = store or MemoryStore()
+
+    def get_order_by_id(self, order_id: int) -> Order | None:
+        return self.store.orders.get(order_id)
+
+    def get_user_by_id(self, user_id: int) -> User | None:
+        return self.store.users.get(user_id)
+
+    def get_delivery_by_id(self, delivery_id: int) -> Delivery | None:
+        return self.store.deliveries.get(delivery_id)
+
+    def get_active_delivery_by_courier(self, courier_id: int) -> Delivery | None:
+        for delivery in self.store.deliveries.values():
+            if delivery.courier_id == courier_id and delivery.status == "in_progress":
+                return delivery
+        return None
+
+    def save_delivery(self, order_id: int, courier_id: int) -> Delivery:
+        delivery = Delivery(
+            id=self.store.next_id(self.store.deliveries),
+            order_id=order_id,
+            courier_id=courier_id,
+            status="in_progress",
+        )
+        self.store.deliveries[delivery.id] = delivery
+        return delivery
+
+    def save_completion(self, delivery: Delivery, order: Order | None) -> None:
+        self.store.deliveries[delivery.id] = delivery
+        if order is not None:
+            self.store.orders[order.id] = order
+'''
+
+FILES["app/modules/delivery/service.py"] = r'''
+"""
+Слой бизнес-логики модуля delivery (Круги 1 и 2).
+Не зависит от fastapi и sqlalchemy.
+"""
+from app.exceptions import ForbiddenError, NotFoundError
+from app.modules.delivery.repository import DeliveryRepository
+
+
+class DeliveryService:
+    """Бизнес-правила доставки заказов."""
+
+    def __init__(self, repository: DeliveryRepository):
+        # Внедрение зависимости через конструктор (инверсия зависимостей).
+        self.repository = repository
+
+    def assign_courier(self, order_id: int, courier_id: int) -> int:
+        """Назначает курьера на заказ и возвращает id доставки."""
+        order = self.repository.get_order_by_id(order_id)
+        if not order:
+            raise NotFoundError("Заказ не найден")
+
+        # Бизнес-правило: курьера можно назначить только на оплаченный заказ.
+        if order.status != "paid":
+            raise ValueError("Курьера можно назначить только на оплаченный заказ")
+
+        courier = self.repository.get_user_by_id(courier_id)
+        if not courier:
+            raise NotFoundError("Курьер не найден")
+        if courier.is_blocked:
+            raise ForbiddenError("Курьер заблокирован и не может быть назначен")
+
+        # Бизнес-правило: один курьер - одна активная доставка.
+        if self.repository.get_active_delivery_by_courier(courier_id):
+            raise ValueError("У курьера уже есть активная доставка")
+
+        return self.repository.save_delivery(order_id, courier_id).id
+
+    def complete_delivery(self, delivery_id: int) -> None:
+        """Завершает доставку и помечает заказ как доставленный."""
+        delivery = self.repository.get_delivery_by_id(delivery_id)
+        if not delivery:
+            raise NotFoundError("Доставка не найдена")
+        if delivery.status == "completed":
+            raise ValueError("Доставка уже завершена")
+        if delivery.status == "cancelled":
+            raise ValueError("Отменённую доставку нельзя завершить")
+
+        delivery.status = "completed"
+
+        order = self.repository.get_order_by_id(delivery.order_id)
+        if order:
+            order.status = "delivered"
+
+        self.repository.save_completion(delivery, order)
+'''
+
+FILES["app/modules/delivery/router.py"] = r'''
+"""
+Транспортный слой модуля delivery (Круг 4).
+"""
+from fastapi import APIRouter, Depends
+
+from app.container import get_delivery_service
+from app.http_errors import to_http_error
+from app.modules.delivery.service import DeliveryService
+from app.schemas import DeliveryAssign
+
+router = APIRouter()
+
+
+@router.post("/assign")
+def assign_courier(
+    payload: DeliveryAssign,
+    service: DeliveryService = Depends(get_delivery_service),
+):
+    try:
+        delivery_id = service.assign_courier(payload.order_id, payload.courier_id)
+    except ValueError as e:
+        raise to_http_error(e)
+
+    return {"status": "success", "delivery_id": delivery_id}
+
+
+@router.patch("/{delivery_id}/complete")
+def complete_delivery(
+    delivery_id: int,
+    service: DeliveryService = Depends(get_delivery_service),
+):
+    try:
+        service.complete_delivery(delivery_id)
+    except ValueError as e:
+        raise to_http_error(e)
+
+    return {"status": "success"}
+'''
+
+# ----------------------------------------------------------------------------
+# Тесты
+# ----------------------------------------------------------------------------
+FILES["tests/__init__.py"] = ""
+
+FILES["tests/test_services.py"] = r'''
+"""
+Unit-тесты слоя бизнес-логики. Не требуют PostgreSQL и веб-сервера:
+сервисы работают с in-memory репозиториями.
+"""
+import pytest
+
+from app.entities import Delivery, MenuItem, Order, User
+from app.exceptions import ForbiddenError, NotFoundError
+from app.memory_store import MemoryStore
+from app.modules.delivery.repository import InMemoryDeliveryRepository
+from app.modules.delivery.service import DeliveryService
+from app.modules.menu.repository import InMemoryMenuRepository
+from app.modules.menu.service import MenuService
+from app.modules.orders.repository import InMemoryOrderRepository
+from app.modules.orders.service import OrderService
+from app.modules.users.repository import InMemoryUserRepository
+from app.modules.users.service import UserService
+
+
+@pytest.fixture
+def store():
+    s = MemoryStore()
+    s.users[1] = User(1, "student@sirius.ru", None, 100.0, False)
+    s.users[2] = User(2, "courier@sirius.ru", None, 0.0, False)
+    s.users[3] = User(3, "blocked@sirius.ru", None, 0.0, True)
+    s.menu_items[1] = MenuItem(1, "Борщ", 30.0, True)
+    s.menu_items[2] = MenuItem(2, "Пицца", 50.0, False)
+    return s
+
+
+# ---------------------------- orders ----------------------------------------
+def test_create_order_success(store):
+    service = OrderService(InMemoryOrderRepository(store))
+
+    order_id = service.create_order(user_id=1, item_id=1, quantity=2)
+
+    assert order_id == 1
+    assert store.users[1].balance == 40.0
+    assert store.orders[1].status == "processing"
+
+
+def test_create_order_not_enough_money(store):
+    service = OrderService(InMemoryOrderRepository(store))
+
+    with pytest.raises(ValueError, match="Недостаточно средств"):
+        service.create_order(user_id=1, item_id=1, quantity=4)
+
+    assert store.users[1].balance == 100.0
+    assert store.orders == {}
+
+
+def test_create_order_unknown_user(store):
+    service = OrderService(InMemoryOrderRepository(store))
+
+    with pytest.raises(NotFoundError):
+        service.create_order(user_id=99, item_id=1, quantity=1)
+
+
+def test_create_order_item_unavailable(store):
+    service = OrderService(InMemoryOrderRepository(store))
+
+    with pytest.raises(ValueError, match="недоступно"):
+        service.create_order(user_id=1, item_id=2, quantity=1)
+
+
+# ---------------------------- users -----------------------------------------
+def test_register_user_success_and_duplicate(store):
+    service = UserService(InMemoryUserRepository(store))
+
+    user = service.register_user("new@sirius.ru", "1234567890")
+    assert user.id == 4
+    assert user.balance == 0.0
+
+    with pytest.raises(ValueError, match="уже зарегистрирован"):
+        service.register_user("new@sirius.ru", None)
+
+
+def test_top_up_balance(store):
+    service = UserService(InMemoryUserRepository(store))
+
+    assert service.top_up_balance(1, 50) == 150.0
+    assert store.users[1].balance == 150.0
+
+
+def test_top_up_blocked_user(store):
+    service = UserService(InMemoryUserRepository(store))
+
+    with pytest.raises(ForbiddenError):
+        service.top_up_balance(3, 10)
+
+
+def test_top_up_limit_exceeded(store):
+    service = UserService(InMemoryUserRepository(store))
+
+    with pytest.raises(ValueError, match="50000"):
+        service.top_up_balance(1, 50001)
+
+
+# ---------------------------- menu ------------------------------------------
+def test_create_menu_item_and_duplicate(store):
+    service = MenuService(InMemoryMenuRepository(store))
+
+    assert service.create_menu_item("Суп", 25.0) == 3
+    with pytest.raises(ValueError, match="уже существует"):
+        service.create_menu_item("Суп", 30.0)
+
+
+def test_update_menu_item(store):
+    service = MenuService(InMemoryMenuRepository(store))
+
+    service.update_menu_item(1, name=None, price=35.0, is_available=False)
+
+    assert store.menu_items[1].price == 35.0
+    assert store.menu_items[1].name == "Борщ"
+    assert store.menu_items[1].is_available is False
+
+
+def test_update_unknown_menu_item(store):
+    service = MenuService(InMemoryMenuRepository(store))
+
+    with pytest.raises(NotFoundError):
+        service.update_menu_item(99, name="X", price=None, is_available=None)
+
+
+# ---------------------------- delivery --------------------------------------
+def test_assign_courier_requires_paid_order(store):
+    store.orders[1] = Order(1, 1, 1, 1, "processing")
+    service = DeliveryService(InMemoryDeliveryRepository(store))
+
+    with pytest.raises(ValueError, match="оплаченный"):
+        service.assign_courier(order_id=1, courier_id=2)
+
+
+def test_assign_courier_rules(store):
+    store.orders[1] = Order(1, 1, 1, 1, "paid")
+    store.orders[2] = Order(2, 1, 1, 1, "paid")
+    service = DeliveryService(InMemoryDeliveryRepository(store))
+
+    with pytest.raises(ForbiddenError):
+        service.assign_courier(order_id=1, courier_id=3)
+
+    assert service.assign_courier(order_id=1, courier_id=2) == 1
+    with pytest.raises(ValueError, match="активная доставка"):
+        service.assign_courier(order_id=2, courier_id=2)
+
+
+def test_complete_delivery_updates_order(store):
+    store.orders[1] = Order(1, 1, 1, 1, "paid")
+    store.deliveries[1] = Delivery(1, 1, 2, "in_progress")
+    service = DeliveryService(InMemoryDeliveryRepository(store))
+
+    service.complete_delivery(1)
+
+    assert store.deliveries[1].status == "completed"
+    assert store.orders[1].status == "delivered"
+    with pytest.raises(ValueError, match="уже завершена"):
+        service.complete_delivery(1)
+'''
+
+FILES["tests/test_architecture.py"] = r'''
+"""
+Архитектурный тест: service.py не должен импортировать fastapi и sqlalchemy.
+"""
+import ast
+from pathlib import Path
+
+FORBIDDEN = ("fastapi", "sqlalchemy")
+MODULES_DIR = Path(__file__).resolve().parent.parent / "app" / "modules"
+
+
+def test_services_do_not_import_frameworks():
+    services = sorted(MODULES_DIR.glob("*/service.py"))
+    assert len(services) == 4
+
+    for path in services:
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                names = [alias.name for alias in node.names]
+            elif isinstance(node, ast.ImportFrom):
+                names = [node.module or ""]
+            else:
+                continue
+            for name in names:
+                assert not name.startswith(FORBIDDEN), f"{path.name}: запрещённый импорт {name}"
+'''
+
+FILES["tests/test_api_memory.py"] = r'''
+"""
+Проверка API целиком на in-memory репозиториях (без PostgreSQL).
+Доказывает, что реализацию репозитория можно заменить,
+не меняя ни service.py, ни router.py.
+"""
+import os
+
+os.environ["REPO_BACKEND"] = "memory"
+
+import pytest  # noqa: E402
+from fastapi.testclient import TestClient  # noqa: E402
+
+from app.main import app  # noqa: E402
+from app.memory_store import memory_store  # noqa: E402
+
+
+@pytest.fixture
+def client():
+    memory_store.clear()
+    return TestClient(app)
+
+
+def test_full_flow(client):
+    r = client.post("/users/register", json={"email": "student@sirius.ru", "phone": "1234567890"})
+    assert r.status_code == 200
+    assert r.json() == {"status": "success", "user_id": 1, "email": "student@sirius.ru"}
+
+    r = client.post("/users/1/topup", params={"amount": 100})
+    assert r.json() == {"status": "success", "new_balance": 100.0}
+
+    r = client.post("/menu/items", json={"name": "Борщ", "price": 30})
+    assert r.json() == {"status": "success", "item_id": 1}
+
+    r = client.post("/orders/create", json={"user_id": 1, "item_id": 1, "quantity": 2})
+    assert r.status_code == 200
+    assert r.json() == {"status": "success", "order_id": 1}
+
+    r = client.post("/users/1/topup", params={"amount": 10})
+    assert r.json()["new_balance"] == 50.0  # 100 - 2*30 + 10
+
+    # Коды ошибок сохранены как в исходном MVP
+    r = client.post("/orders/create", json={"user_id": 1, "item_id": 1, "quantity": 0})
+    assert r.status_code == 400
+    r = client.post("/orders/create", json={"user_id": 99, "item_id": 1, "quantity": 1})
+    assert r.status_code == 404
+    r = client.post("/orders/create", json={"user_id": 1, "item_id": 1, "quantity": 100})
+    assert r.status_code == 400
+
+    # Доставка
+    client.post("/users/register", json={"email": "courier@sirius.ru"})
+    memory_store.orders[1].status = "paid"
+
+    r = client.post("/delivery/assign", json={"order_id": 1, "courier_id": 2})
+    assert r.json() == {"status": "success", "delivery_id": 1}
+
+    r = client.patch("/delivery/1/complete")
+    assert r.json() == {"status": "success"}
+    assert memory_store.orders[1].status == "delivered"
+
+    r = client.patch("/delivery/1/complete")
+    assert r.status_code == 400
+'''
+
+
+def main():
+    for path, content in FILES.items():
+        folder = os.path.dirname(path)
+        if folder:
+            os.makedirs(folder, exist_ok=True)
+        text = content.lstrip("\n")
+        if text and not text.endswith("\n"):
+            text += "\n"
+        with open(path, "w", encoding="utf-8", newline="\n") as f:
+            f.write(text)
+        print("создан:", path)
+
+    print()
+    print("Готово. Дальше:")
+    print("  python3 -m venv .venv && source .venv/bin/activate")
+    print("  pip install -r requirements.txt")
+    print("  pytest -v")
+    print("  sudo docker-compose up -d db redis")
+    print("  uvicorn app.main:app --reload")
+
+
+if __name__ == "__main__":
+    main()"""
+
+tests/__init__.py:
+"""
+"""
+
+tests/test_api_memory.py:
+"""
+"""
+Проверка API целиком на in-memory репозиториях (без PostgreSQL).
+Доказывает, что реализацию репозитория можно заменить,
+не меняя ни service.py, ни router.py.
+"""
+import os
+
+os.environ["REPO_BACKEND"] = "memory"
+
+import pytest  # noqa: E402
+from fastapi.testclient import TestClient  # noqa: E402
+
+from app.main import app  # noqa: E402
+from app.memory_store import memory_store  # noqa: E402
+
+
+@pytest.fixture
+def client():
+    memory_store.clear()
+    return TestClient(app)
+
+
+def test_full_flow(client):
+    r = client.post("/users/register", json={"email": "student@sirius.ru", "phone": "1234567890"})
+    assert r.status_code == 200
+    assert r.json() == {"status": "success", "user_id": 1, "email": "student@sirius.ru"}
+
+    r = client.post("/users/1/topup", params={"amount": 100})
+    assert r.json() == {"status": "success", "new_balance": 100.0}
+
+    r = client.post("/menu/items", json={"name": "Борщ", "price": 30})
+    assert r.json() == {"status": "success", "item_id": 1}
+
+    r = client.post("/orders/create", json={"user_id": 1, "item_id": 1, "quantity": 2})
+    assert r.status_code == 200
+    assert r.json() == {"status": "success", "order_id": 1}
+
+    r = client.post("/users/1/topup", params={"amount": 10})
+    assert r.json()["new_balance"] == 50.0  # 100 - 2*30 + 10
+
+    # Коды ошибок сохранены как в исходном MVP
+    r = client.post("/orders/create", json={"user_id": 1, "item_id": 1, "quantity": 0})
+    assert r.status_code == 400
+    r = client.post("/orders/create", json={"user_id": 99, "item_id": 1, "quantity": 1})
+    assert r.status_code == 404
+    r = client.post("/orders/create", json={"user_id": 1, "item_id": 1, "quantity": 100})
+    assert r.status_code == 400
+
+    # Доставка
+    client.post("/users/register", json={"email": "courier@sirius.ru"})
+    memory_store.orders[1].status = "paid"
+
+    r = client.post("/delivery/assign", json={"order_id": 1, "courier_id": 2})
+    assert r.json() == {"status": "success", "delivery_id": 1}
+
+    r = client.patch("/delivery/1/complete")
+    assert r.json() == {"status": "success"}
+    assert memory_store.orders[1].status == "delivered"
+
+    r = client.patch("/delivery/1/complete")
+    assert r.status_code == 400
+"""
+
+tests/test_architecture.py:
+"""
+"""
+Архитектурный тест: service.py не должен импортировать fastapi и sqlalchemy.
+"""
+import ast
+from pathlib import Path
+
+FORBIDDEN = ("fastapi", "sqlalchemy")
+MODULES_DIR = Path(__file__).resolve().parent.parent / "app" / "modules"
+
+
+def test_services_do_not_import_frameworks():
+    services = sorted(MODULES_DIR.glob("*/service.py"))
+    assert len(services) == 4
+
+    for path in services:
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                names = [alias.name for alias in node.names]
+            elif isinstance(node, ast.ImportFrom):
+                names = [node.module or ""]
+            else:
+                continue
+            for name in names:
+                assert not name.startswith(FORBIDDEN), f"{path.name}: запрещённый импорт {name}"
+"""
+
+tests/test_services.py:
+"""
+"""
+Unit-тесты слоя бизнес-логики. Не требуют PostgreSQL и веб-сервера:
+сервисы работают с in-memory репозиториями.
+"""
+import pytest
+
+from app.entities import Delivery, MenuItem, Order, User
+from app.exceptions import ForbiddenError, NotFoundError
+from app.memory_store import MemoryStore
+from app.modules.delivery.repository import InMemoryDeliveryRepository
+from app.modules.delivery.service import DeliveryService
+from app.modules.menu.repository import InMemoryMenuRepository
+from app.modules.menu.service import MenuService
+from app.modules.orders.repository import InMemoryOrderRepository
+from app.modules.orders.service import OrderService
+from app.modules.users.repository import InMemoryUserRepository
+from app.modules.users.service import UserService
+
+
+@pytest.fixture
+def store():
+    s = MemoryStore()
+    s.users[1] = User(1, "student@sirius.ru", None, 100.0, False)
+    s.users[2] = User(2, "courier@sirius.ru", None, 0.0, False)
+    s.users[3] = User(3, "blocked@sirius.ru", None, 0.0, True)
+    s.menu_items[1] = MenuItem(1, "Борщ", 30.0, True)
+    s.menu_items[2] = MenuItem(2, "Пицца", 50.0, False)
+    return s
+
+
+# ---------------------------- orders ----------------------------------------
+def test_create_order_success(store):
+    service = OrderService(InMemoryOrderRepository(store))
+
+    order_id = service.create_order(user_id=1, item_id=1, quantity=2)
+
+    assert order_id == 1
+    assert store.users[1].balance == 40.0
+    assert store.orders[1].status == "processing"
+
+
+def test_create_order_not_enough_money(store):
+    service = OrderService(InMemoryOrderRepository(store))
+
+    with pytest.raises(ValueError, match="Недостаточно средств"):
+        service.create_order(user_id=1, item_id=1, quantity=4)
+
+    assert store.users[1].balance == 100.0
+    assert store.orders == {}
+
+
+def test_create_order_unknown_user(store):
+    service = OrderService(InMemoryOrderRepository(store))
+
+    with pytest.raises(NotFoundError):
+        service.create_order(user_id=99, item_id=1, quantity=1)
+
+
+def test_create_order_item_unavailable(store):
+    service = OrderService(InMemoryOrderRepository(store))
+
+    with pytest.raises(ValueError, match="недоступно"):
+        service.create_order(user_id=1, item_id=2, quantity=1)
+
+
+# ---------------------------- users -----------------------------------------
+def test_register_user_success_and_duplicate(store):
+    service = UserService(InMemoryUserRepository(store))
+
+    user = service.register_user("new@sirius.ru", "1234567890")
+    assert user.id == 4
+    assert user.balance == 0.0
+
+    with pytest.raises(ValueError, match="уже зарегистрирован"):
+        service.register_user("new@sirius.ru", None)
+
+
+def test_top_up_balance(store):
+    service = UserService(InMemoryUserRepository(store))
+
+    assert service.top_up_balance(1, 50) == 150.0
+    assert store.users[1].balance == 150.0
+
+
+def test_top_up_blocked_user(store):
+    service = UserService(InMemoryUserRepository(store))
+
+    with pytest.raises(ForbiddenError):
+        service.top_up_balance(3, 10)
+
+
+def test_top_up_limit_exceeded(store):
+    service = UserService(InMemoryUserRepository(store))
+
+    with pytest.raises(ValueError, match="50000"):
+        service.top_up_balance(1, 50001)
+
+
+# ---------------------------- menu ------------------------------------------
+def test_create_menu_item_and_duplicate(store):
+    service = MenuService(InMemoryMenuRepository(store))
+
+    assert service.create_menu_item("Суп", 25.0) == 3
+    with pytest.raises(ValueError, match="уже существует"):
+        service.create_menu_item("Суп", 30.0)
+
+
+def test_update_menu_item(store):
+    service = MenuService(InMemoryMenuRepository(store))
+
+    service.update_menu_item(1, name=None, price=35.0, is_available=False)
+
+    assert store.menu_items[1].price == 35.0
+    assert store.menu_items[1].name == "Борщ"
+    assert store.menu_items[1].is_available is False
+
+
+def test_update_unknown_menu_item(store):
+    service = MenuService(InMemoryMenuRepository(store))
+
+    with pytest.raises(NotFoundError):
+        service.update_menu_item(99, name="X", price=None, is_available=None)
+
+
+# ---------------------------- delivery --------------------------------------
+def test_assign_courier_requires_paid_order(store):
+    store.orders[1] = Order(1, 1, 1, 1, "processing")
+    service = DeliveryService(InMemoryDeliveryRepository(store))
+
+    with pytest.raises(ValueError, match="оплаченный"):
+        service.assign_courier(order_id=1, courier_id=2)
+
+
+def test_assign_courier_rules(store):
+    store.orders[1] = Order(1, 1, 1, 1, "paid")
+    store.orders[2] = Order(2, 1, 1, 1, "paid")
+    service = DeliveryService(InMemoryDeliveryRepository(store))
+
+    with pytest.raises(ForbiddenError):
+        service.assign_courier(order_id=1, courier_id=3)
+
+    assert service.assign_courier(order_id=1, courier_id=2) == 1
+    with pytest.raises(ValueError, match="активная доставка"):
+        service.assign_courier(order_id=2, courier_id=2)
+
+
+def test_complete_delivery_updates_order(store):
+    store.orders[1] = Order(1, 1, 1, 1, "paid")
+    store.deliveries[1] = Delivery(1, 1, 2, "in_progress")
+    service = DeliveryService(InMemoryDeliveryRepository(store))
+
+    service.complete_delivery(1)
+
+    assert store.deliveries[1].status == "completed"
+    assert store.orders[1].status == "delivered"
+    with pytest.raises(ValueError, match="уже завершена"):
+        service.complete_delivery(1)
+"""
+

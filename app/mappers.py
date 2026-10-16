@@ -1,7 +1,4 @@
-"""
-Преобразование ORM-моделей в сущности предметной области.
-Используется только в SQL-репозиториях.
-"""
+"""ORM -> сущность."""
 from app import entities, models
 
 
@@ -9,43 +6,28 @@ def to_user(row: models.User | None) -> entities.User | None:
     if row is None:
         return None
     return entities.User(
-        id=row.id,
-        email=row.email,
-        phone=row.phone,
-        balance=row.balance,
+        id=row.id, email=row.email, phone=row.phone, balance=row.balance,
         is_blocked=row.is_blocked,
+        role=row.role.name if row.role else "student",
+        password_hash=row.password_hash,
     )
 
 
-def to_menu_item(row: models.MenuItem | None) -> entities.MenuItem | None:
+def to_menu_item(row):
     if row is None:
         return None
-    return entities.MenuItem(
-        id=row.id,
-        name=row.name,
-        price=row.price,
-        is_available=row.is_available,
-    )
+    return entities.MenuItem(id=row.id, name=row.name, price=row.price, is_available=row.is_available)
 
 
-def to_order(row: models.Order | None) -> entities.Order | None:
+def to_order(row):
     if row is None:
         return None
-    return entities.Order(
-        id=row.id,
-        user_id=row.user_id,
-        item_id=row.item_id,
-        quantity=row.quantity,
-        status=row.status,
-    )
+    return entities.Order(id=row.id, user_id=row.user_id, item_id=row.item_id,
+                          quantity=row.quantity, status=row.status)
 
 
-def to_delivery(row: models.Delivery | None) -> entities.Delivery | None:
+def to_delivery(row):
     if row is None:
         return None
-    return entities.Delivery(
-        id=row.id,
-        order_id=row.order_id,
-        courier_id=row.courier_id,
-        status=row.status,
-    )
+    return entities.Delivery(id=row.id, order_id=row.order_id,
+                             courier_id=row.courier_id, status=row.status)
