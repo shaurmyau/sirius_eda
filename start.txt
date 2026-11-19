@@ -1,0 +1,41 @@
+FastAPI (uvicorn app.main:app --reload)
+
+Celery Worker (celery -A app.core.celery_app worker --loglevel=info)
+
+Flower (celery -A app.core.celery_app flower)
+
+Celery Beat (celery -A app.core.celery_app beat --loglevel=info)
+
+
+====================
+
+  Терминал 1:  source .venv/bin/activate && python delivery_server.py
+  Терминал 2:  source .venv/bin/activate && uvicorn app.main:app --reload
+
+====================
+
+Полный набор процессов (5 терминалов)
+#	Что	Команда
+0	Инфраструктура (один раз)	docker compose up -d db redis
+1	gRPC-микросервис delivery ← новый	python delivery_server.py
+2	FastAPI монолит	uvicorn app.main:app --reload
+3	Celery Worker	celery -A app.core.celery_app worker --loglevel=info
+4	Celery Beat	celery -A app.core.celery_app beat --loglevel=info
+5	Flower (опционально)	celery -A app.core.celery_app flower
+
+Во всех терминалах сначала source .venv/bin/activate.
+
+===================
+
+# Терминал 1 — gRPC-сервер
+source .venv/bin/activate
+python delivery_server.py
+# Delivery gRPC Server running on port 50051
+
+# Терминал 2 — демо
+source .venv/bin/activate
+python chat_demo.py 1        # аргумент — delivery_id (для логов/контекста)
+
+====================
+
+Фронтенд (ЛР № 8): cd frontend && npm run dev   # http://localhost:3000

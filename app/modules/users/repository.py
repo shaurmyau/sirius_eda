@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from app.entities import User
 from app.mappers import to_user
 from app.memory_store import MemoryStore
+from app.permissions import permissions_for_role
 from app.models import Role as RoleModel
 from app.models import User as UserModel
 
@@ -65,8 +66,12 @@ class InMemoryUserRepository(UserRepository):
         return None
 
     def save_user(self, email, phone, password_hash=None, role="student"):
-        u = User(id=self.store.next_id(self.store.users), email=email, phone=phone,
-                 balance=0.0, is_blocked=False, role=role, password_hash=password_hash)
+        u = User(
+            id=self.store.next_id(self.store.users),
+            email=email, phone=phone, balance=0.0, is_blocked=False,
+            role=role, password_hash=password_hash,
+            permissions=frozenset(permissions_for_role(role)),
+        )
         self.store.users[u.id] = u
         return u
 

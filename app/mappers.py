@@ -5,18 +5,30 @@ from app import entities, models
 def to_user(row: models.User | None) -> entities.User | None:
     if row is None:
         return None
+    role_name = row.role.name if row.role else "student"
+    perms: set[str] = set()
+    if row.role is not None:
+        perms = {p.code for p in row.role.permissions}
     return entities.User(
-        id=row.id, email=row.email, phone=row.phone, balance=row.balance,
+        id=row.id,
+        email=row.email,
+        phone=row.phone,
+        balance=row.balance,
         is_blocked=row.is_blocked,
-        role=row.role.name if row.role else "student",
+        role=role_name,
         password_hash=row.password_hash,
+        permissions=frozenset(perms),
     )
 
 
 def to_menu_item(row):
     if row is None:
         return None
-    return entities.MenuItem(id=row.id, name=row.name, price=row.price, is_available=row.is_available)
+    return entities.MenuItem(
+        id=row.id, name=row.name, price=row.price,
+        is_available=row.is_available,
+        category=getattr(row, "category", "food") or "food",
+    )
 
 
 def to_order(row):

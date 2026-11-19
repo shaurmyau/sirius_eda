@@ -37,7 +37,6 @@ class AuthService:
         if not jti or not uid:
             raise UnauthorizedError("Недействительный refresh-токен")
 
-        # Rotation: повторное использование отозванного токена = компрометация.
         if self.repository.is_refresh_token_revoked(jti):
             self.repository.revoke_all_user_tokens(uid)
             raise UnauthorizedError("Refresh-токен уже использован. Сессия сброшена")

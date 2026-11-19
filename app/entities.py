@@ -1,5 +1,7 @@
 """Сущности предметной области (dataclass, без ORM)."""
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+
+from app.permissions import ROLE_PERMISSIONS
 
 
 @dataclass
@@ -11,6 +13,22 @@ class User:
     is_blocked: bool
     role: str = "student"
     password_hash: str | None = None
+    permissions: frozenset[str] = field(default_factory=frozenset)
+
+    def effective_permissions(self) -> frozenset[str]:
+        """Гарантированно непустой набор прав.
+
+        Если permissions не заполнены явно — берём из матрицы роли.
+        Для admin возвращаем {"*"} — семантический wildcard.
+        """
+        if self.permissions:
+            return self.permissions
+        return frozenset(ROLE_PERMISSIONS.get(self.role, set()))
+
+    def has_permission(self, code: str) -> bool:
+        """Есть ли у пользователя право. Учитывает wildcard "*" (admin)."""
+        perms = self.effective_permissions()
+        return "*" in perms or code in perms
 
 
 @dataclass
@@ -19,6 +37,7 @@ class MenuItem:
     name: str
     price: float
     is_available: bool
+    category: str = "food"
 
 
 @dataclass

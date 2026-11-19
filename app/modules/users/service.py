@@ -3,6 +3,7 @@ from app.core.security import hash_password, verify_password
 from app.entities import User
 from app.exceptions import ConflictError, ForbiddenError, NotFoundError, UnauthorizedError
 from app.modules.users.repository import UserRepository
+from app.permissions import ROLE_PERMISSIONS
 
 MAX_TOPUP = 50000
 
@@ -12,6 +13,15 @@ class UserService:
         self.repository = repository
 
     def register_user(self, email, password, phone=None, role="student") -> User:
+        role = (role or "student").lower()
+
+        # Неизвестная роль — отсекаем раньше, чем попадём в БД.
+        if role not in ROLE_PERMISSIONS:
+            raise ValueError(
+                f"Неизвестная роль: {role}. "
+                f"Допустимо: {', '.join(sorted(ROLE_PERMISSIONS))}"
+            )
+
         if self.repository.get_user_by_email(email):
             raise ConflictError("Пользователь с таким email уже зарегистрирован")
         return self.repository.save_user(

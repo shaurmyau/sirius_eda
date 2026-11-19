@@ -71,3 +71,42 @@ def test_refresh_rotation(client):
     # Повторное использование — 401 + сброс всей сессии.
     assert client.post("/auth/refresh", json={"refresh_token": old}).status_code == 401
     assert client.post("/auth/refresh", json={"refresh_token": new}).status_code == 401
+
+# =============================================================================
+# Rate limiting (429) — изолированный тест без реального Redis.
+# =============================================================================
+class _FakeRedis:
+    """Минимальный in-memory аналог Redis для проверки rate limit."""
+    def __init__(self):
+        self.data: dict[str, int] = {}
+
+    def incr(self, key):
+        self.data[key] = self.data.get(key, 0) + 1
+        return self.data[key]
+
+    def expire(self, key, ttl):
+        return True
+
+
+def test_rate_limit_429(client, monkeypatch):
+    """6-й запрос к /auth/login в окне 60с → 429.
+
+    Подменяем модуль app.core.rate_limit._redis на фейк и включаем флаг,
+    чтобы не зависеть от реального Redis в CI.
+    """
+    from app.core import rate_limit as rl
+
+    monkeypatch.setattr(rl, "_redis", _FakeRedis())
+    monkeypatch.setattr(rl.settings, "RATE_LIMIT_ENABLED", True)
+
+    # регистрируем, чтобы аккаунт существовал (email любой — важно, что запросы идут)
+    client.post("/users/register", json={"email": "rl@test.ru", "password": "secret123"})
+
+    codes = []
+    for _ in range(6):
+        r = client.post("/auth/login", json={"email": "rl@test.ru", "password": "wrong"})
+        codes.append(r.status_code)
+
+    assert codes[0] == 401, codes            # первые 5 — неверный пароль
+    assert codes[-1] == 429, codes           # 6-й — заблокирован
+    assert codes.count(429) >= 1, codes

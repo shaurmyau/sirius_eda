@@ -1,4 +1,6 @@
 """Pydantic-схемы."""
+from typing import Literal
+
 from pydantic import BaseModel, EmailStr
 
 
@@ -6,6 +8,7 @@ class UserCreate(BaseModel):
     email: EmailStr
     password: str
     phone: str | None = None
+    role: str | None = None
 
 
 class UserResponse(BaseModel):
@@ -20,12 +23,14 @@ class UserResponse(BaseModel):
 class MenuItemCreate(BaseModel):
     name: str
     price: float
+    category: Literal["food", "drink", "other"]
 
 
 class MenuItemUpdate(BaseModel):
     name: str | None = None
     price: float | None = None
     is_available: bool | None = None
+    category: Literal["food", "drink", "other"] | None = None
 
 
 class OrderCreate(BaseModel):
