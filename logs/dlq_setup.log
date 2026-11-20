@@ -1,0 +1,1 @@
+DLQ настроена: dlx_exchange + kitchen_dlq, delivery_dlq, order_saga_dlq

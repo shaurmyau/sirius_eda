@@ -33,7 +33,7 @@ start() {
 }
 
 echo "==> 0. Поднимаем инфраструктуру (Docker)..."
-docker compose up -d db redis rabbitmq > /dev/null
+docker compose up -d db redis rabbitmq prometheus redis-exporter grafana jaeger > /dev/null
 
 echo -n "==> Ожидание PostgreSQL..."
 until docker compose exec -T db pg_isready -U sirius -d sirius_food >/dev/null 2>&1; do
@@ -88,7 +88,7 @@ start delivery python delivery_worker.py
 start saga     python -m app.workers.order_saga_consumer
 
 echo "==> 3. Запуск FastAPI монолита..."
-start api uvicorn app.main:app --reload
+start api uvicorn app.main:app --reload --host 0.0.0.0
 
 # lab8-frontend: фронтенд Next.js (ЛР № 8). FRONT_MODE=dev (по умолчанию) | prod
 FRONT_MODE="${FRONT_MODE:-dev}"

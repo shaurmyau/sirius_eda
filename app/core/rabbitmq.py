@@ -17,6 +17,8 @@ import aio_pika
 from aio_pika import DeliveryMode, ExchangeType
 
 from app.core.config import settings
+from app.core.correlation import get_correlation_id
+from app.core.tracing import get_tracer
 
 log = logging.getLogger("rabbitmq")
 
@@ -80,34 +82,48 @@ async def declare_topology(channel):
     return exchange, queues
 
 
-def _build_message(payload: dict) -> aio_pika.Message:
+def _build_message(payload: dict, headers: dict | None = None) -> aio_pika.Message:
     return aio_pika.Message(
         body=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
-        delivery_mode=DeliveryMode.PERSISTENT,  # сообщение пишется на диск
+        delivery_mode=DeliveryMode.PERSISTENT,
         content_type="application/json",
         message_id=str(payload.get("event_id", "")) or None,
+        headers=headers or {},
     )
 
 
 async def publish_event(routing_key: str, payload: dict, *, exchange=None) -> None:
-    """Публикует событие в exchange `sirius_events`.
+    """Публикует событие с correlation_id и W3C traceparent в AMQP headers."""
+    tracer = get_tracer("sirius.rabbitmq")
+    with tracer.start_as_current_span(f"rabbitmq.publish {routing_key}") as span:
+        span.set_attribute("messaging.system", "rabbitmq")
+        span.set_attribute("messaging.destination.name", routing_key)
+        span.set_attribute("messaging.operation", "publish")
+        if payload.get("order_id") is not None:
+            span.set_attribute("order.id", str(payload["order_id"]))
 
-    routing_key — например, 'order.paid'; payload — словарь с данными события.
-    Если передан уже открытый `exchange` (consumer публикует следующее событие
-    саги) — используем его, иначе открываем соединение на время публикации.
-    """
-    message = _build_message(payload)
-    if exchange is not None:
-        await exchange.publish(message, routing_key=routing_key)
-        return
+        headers: dict = {}
+        try:
+            from opentelemetry.propagate import inject
+            inject(headers)  # traceparent/baggage родительского span'а.
+        except Exception:
+            log.debug("OpenTelemetry context injection пропущен", exc_info=True)
 
-    connection = await get_connection()
-    async with connection:
-        channel = await connection.channel()
-        exchange, _ = await declare_topology(channel)
-        await exchange.publish(message, routing_key=routing_key)
+        correlation_id = get_correlation_id()
+        if correlation_id:
+            headers["X-Correlation-ID"] = correlation_id
+
+        message = _build_message(payload, headers)
+        if exchange is not None:
+            await exchange.publish(message, routing_key=routing_key)
+        else:
+            connection = await get_connection()
+            async with connection:
+                channel = await connection.channel()
+                exchange, _ = await declare_topology(channel)
+                await exchange.publish(message, routing_key=routing_key)
+
     log.info("published %s event_id=%s", routing_key, payload.get("event_id"))
-
 
 def publish_event_sync(routing_key: str, payload: dict, timeout: float = 10.0) -> None:
     """Синхронная обёртка для sync-сервисов (FastAPI вызывает их в threadpool,

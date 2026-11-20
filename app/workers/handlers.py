@@ -12,6 +12,9 @@
 from __future__ import annotations
 
 import uuid
+import structlog
+
+log = structlog.get_logger("workers.handlers")
 
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
@@ -58,18 +61,18 @@ def handle_order_paid_kitchen(db, payload: dict) -> list[OutEvent]:
     order_id = int(payload["order_id"])
 
     if not claim_event(db, event_id, KITCHEN):
-        print(f"[Kitchen] Дубликат события {event_id} — пропускаем")
+        log.info("duplicate_event_skipped", consumer=KITCHEN, event_id=event_id)
         return []
 
     # Бизнес-идемпотентность: один заказ — одна запись кухни.
     if db.query(models.KitchenOrder).filter_by(order_id=order_id).first():
         db.commit()
-        print(f"[Kitchen] Заказ {order_id} уже на кухне — пропускаем")
+        log.info("order_already_in_kitchen", order_id=order_id)
         return []
 
     db.add(models.KitchenOrder(order_id=order_id, status="pending"))
     db.commit()
-    print(f"[Kitchen] Принят заказ {order_id}")
+    log.info("kitchen_order_accepted", order_id=order_id)
     return []
 
 
@@ -101,7 +104,7 @@ def handle_order_paid_delivery(db, payload: dict) -> list[OutEvent]:
     order_id = int(payload["order_id"])
 
     if not claim_event(db, event_id, DELIVERY):
-        print(f"[Delivery] Дубликат события {event_id} — пропускаем")
+        log.info("duplicate_event_skipped", consumer=DELIVERY, event_id=event_id)
         return []
 
     order = db.get(models.Order, order_id)
@@ -113,7 +116,7 @@ def handle_order_paid_delivery(db, payload: dict) -> list[OutEvent]:
                        models.Delivery.status != "cancelled").first())
     if already:
         db.commit()
-        print(f"[Delivery] Для заказа {order_id} доставка уже создана")
+        log.info("delivery_already_created", order_id=order_id)
         return []
 
     courier_id = find_free_courier(db)
@@ -125,7 +128,7 @@ def handle_order_paid_delivery(db, payload: dict) -> list[OutEvent]:
 
     if courier_id is None:
         db.commit()  # фиксируем processed_event
-        print(f"[Delivery] Нет свободного курьера для заказа {order_id} → DeliveryFailed")
+        log.warning("delivery_failed_no_courier", order_id=order_id)
         return [("delivery.failed", {
             "event_id": _derived_event_id("delivery.failed", event_id),
             "reason": "no_courier_available",
@@ -134,7 +137,7 @@ def handle_order_paid_delivery(db, payload: dict) -> list[OutEvent]:
 
     db.add(models.Delivery(order_id=order_id, courier_id=courier_id, status="in_progress"))
     db.commit()
-    print(f"[Delivery] Подготовка доставки для заказа {order_id}, курьер {courier_id}")
+    log.info("delivery_prepared", order_id=order_id, courier_id=courier_id)
     return [("delivery.assigned", {
         "event_id": _derived_event_id("delivery.assigned", event_id),
         "courier_id": courier_id,
@@ -151,7 +154,7 @@ def handle_delivery_failed(db, payload: dict) -> list[OutEvent]:
 
     # compensation_key = (event_id, "order_saga"): повторная компенсация невозможна.
     if not claim_event(db, event_id, ORDER_SAGA):
-        print(f"[Saga] Дубликат события {event_id} — компенсация уже выполнена")
+        log.info("saga_duplicate_skipped", event_id=event_id)
         return []
 
     order = db.get(models.Order, order_id)
@@ -160,7 +163,7 @@ def handle_delivery_failed(db, payload: dict) -> list[OutEvent]:
 
     if order.status not in ("paid", "processing"):
         db.commit()
-        print(f"[Saga] Заказ {order_id} в статусе '{order.status}' — компенсация не нужна")
+        log.info("saga_compensation_not_needed", order_id=order_id, status=order.status)
         return []
 
     amount = float(payload.get("amount") or 0)
@@ -175,7 +178,7 @@ def handle_delivery_failed(db, payload: dict) -> list[OutEvent]:
         user.balance = float(user.balance or 0.0) + amount
     db.commit()
 
-    print(f"[Saga] Заказ {order_id} отменён, клиенту {order.user_id} возвращено {amount:.2f}")
+    log.info("saga_order_cancelled_refund", order_id=order_id, user_id=order.user_id, refunded=amount)
     return [("order.cancelled", {
         "event_id": _derived_event_id("order.cancelled", event_id),
         "order_id": order_id,

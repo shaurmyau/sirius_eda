@@ -463,3 +463,105 @@ cd frontend && npm install && cp -n .env.example .env.local && npm run dev
 
 Всё целиком (БД, воркеры, API, фронтенд) запускается одной командой `./start.sh` (`FRONT_MODE=prod ./start.sh` — production-режим с ISR).\n\nИзменения бэкенда: добавлен `GET /menu/items/{item_id}` (404, если блюда нет),
 тесты — `tests/test_menu_item_endpoint.py`.
+
+
+---
+<!-- lab9-observability -->
+# Практическая работа № 9 — Observability
+
+В проект добавлены correlation ID, структурированные JSON-логи, Prometheus,
+Grafana, метрики RabbitMQ/Redis, Sentry (опционально) и OpenTelemetry с Jaeger.
+Существующая бизнес-логика заказа и Saga не меняется.
+
+## Запуск
+
+```bash
+source .venv/bin/activate
+pip install -r requirements.txt
+docker compose up -d db redis rabbitmq prometheus redis-exporter grafana jaeger
+alembic upgrade head
+```
+
+Запускайте API с адресом `0.0.0.0`, чтобы Prometheus из Docker мог опрашивать
+процесс на хосте:
+
+```bash
+uvicorn app.main:app --reload --host 0.0.0.0
+```
+
+Consumer кухни (отдельный терминал):
+
+```bash
+python -m app.workers.kitchen_consumer
+```
+
+При запуске `./start.sh` API и workers поднимаются вместе, а observability-
+инфраструктура запускается через Docker Compose.
+
+## Correlation ID и расследование заказа
+
+Проект публикует событие `order.paid` в RabbitMQ при вызове
+`POST /orders/{order_id}/pay`, а не при создании заказа. Поэтому один и тот же
+`X-Correlation-ID` нужно передать в запрос создания и в запрос оплаты.
+Получите access token через `POST /auth/login`, затем выполните:
+
+```bash
+export TOKEN="<access_token>"
+export CID="demo-42"
+
+# Создание заказа (подставьте существующий item_id и количество).
+curl -i -X POST http://127.0.0.1:8000/orders/create \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -H "X-Correlation-ID: $CID" \
+  -d '{"item_id": 1, "quantity": 1}'
+
+# Из ответа возьмите order_id.
+export ORDER_ID="<order_id из предыдущего ответа>"
+
+# Оплата публикует order.paid; consumer кухни получает тот же correlation ID.
+curl -i -X POST "http://127.0.0.1:8000/orders/$ORDER_ID/pay" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "X-Correlation-ID: $CID"
+```
+
+В обоих HTTP-ответах будет `X-Correlation-ID`. В логах API и consumer'а найдите
+его так (при запуске через `./start.sh`):
+
+```bash
+jq 'select(.correlation_id == "demo-42")' logs/api.log
+jq 'select(.correlation_id == "demo-42")' logs/kitchen.log
+```
+
+При ручном запуске процессов JSON-логи выводятся в соответствующие терминалы.
+RabbitMQ передаёт `X-Correlation-ID` в AMQP headers, а `traceparent` — для
+связи span'ов OpenTelemetry.
+
+## Интерфейсы
+
+- Prometheus: <http://localhost:9090/targets> — `sirius_app`, `rabbitmq` и `redis` должны быть `UP`.
+- Grafana: <http://localhost:3000> — логин/пароль `admin` / `admin`; datasource и дашборд создаются автоматически.
+- Jaeger: <http://localhost:16686> — сервис `sirius-app`, поиск trace после оплаты заказа.
+- RabbitMQ Management: <http://localhost:15672> — `sirius` / `sirius`.
+- Метрики приложения: <http://localhost:8000/metrics>.
+
+Дашборд `Сириус.Еда — Observability` содержит RPS запросов создания заказа,
+latency p95 для `GET /menu/items`, ошибки 5xx, длину `kitchen_queue`, Redis
+cache hit rate и количество доступных targets.
+
+## Sentry (дополнительный уровень)
+
+Скопируйте DSN проекта Sentry в `.env` как `SENTRY_DSN=...`, перезапустите API
+(и worker, если хотите собирать ошибки consumer'ов). Для ручной проверки можно
+временно включить `OBSERVABILITY_TEST_ENDPOINT=true` при `DEBUG=true`, затем
+вызвать `GET /observability/test-error` с `X-Correlation-ID: demo-42`.
+После проверки отключите endpoint обратно.
+
+## OpenTelemetry (10 баллов)
+
+OpenTelemetry включён по умолчанию. По умолчанию OTLP exporter отправляет span'ы
+в `http://localhost:4317` (Jaeger из Compose). Для окружения с другим адресом
+задайте `OTEL_EXPORTER_OTLP_ENDPOINT`. На пути оплаты видны HTTP span, span
+публикации RabbitMQ и consumer span кухни. В Jaeger consumer'ы имеют отдельные
+service name: `sirius-kitchen-worker`, `sirius-delivery-worker` и
+`sirius-order_saga-worker`; API по умолчанию называется `sirius-app`.

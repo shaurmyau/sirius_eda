@@ -1,0 +1,11 @@
+apiVersion: 1
+
+providers:
+  - name: "Sirius dashboards"
+    orgId: 1
+    folder: "Sirius.Еда"
+    type: file
+    disableDeletion: false
+    editable: true
+    options:
+      path: /var/lib/grafana/dashboards
