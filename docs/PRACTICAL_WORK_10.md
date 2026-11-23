@@ -10,10 +10,10 @@
 
 | Критерий | Команда | Что показать |
 |---|---|---|
-| Unit-тесты и пирамида тестов | `./scripts/check_practical_work_10.sh fast` | Быстрые тесты сервисов и API без реального Docker |
+| Unit-тесты и пирамида тестов | `bash scripts/check_practical_work_10.sh fast` | Быстрые тесты сервисов и API без реального Docker |
 | 6–7: PostgreSQL Testcontainers | `./scripts/check_practical_work_10.sh integration` | `tests/integration/test_orders_postgres.py`: чистый PostgreSQL 15, Alembic upgrade, создание заказа через HTTP, запись в БД и списание баланса |
 | 6–7: RabbitMQ Testcontainers | та же команда | Реальная доставка сообщений, идемпотентность, fan-out, DLQ и Saga в `tests/integration/test_consumers_integration.py` |
-| 6–7: Locust | `./scripts/run_load_test.sh` | RPS, failure rate, median/p95/p99 и CSV/HTML отчёты для 50/100/200 пользователей |
+| 6–7: Locust | `bash scripts/run_load_test.sh` | RPS, failure rate, median/p95/p99 и CSV/HTML отчёты для 50/100/200 пользователей |
 | 8: GitHub Actions | вкладка Actions → **Sirius EDA tests** | Checks `tests` и `mutmut` на push и PR |
 | 9: Pact | `./scripts/check_practical_work_10.sh contract` | Pact V3 Async Message: проверка kitchen consumer и provider-сообщения из `OrderService.pay_order` |
 | 10: mutmut | `./scripts/check_practical_work_10.sh mutation` | Запуск мутантов только для `OrderService`, список killed/survived |
