@@ -52,19 +52,24 @@ def test_create_order_rejects_unavailable_item_and_insufficient_balance(store):
 
 
 def test_cancel_order_checks_owner_and_allowed_status(store):
-    with pytest.raises(ForbiddenError):
+    with pytest.raises(ForbiddenError) as error:
         service(store).cancel_order(20, store.users[2])
+    assert str(error.value) == "Нельзя отменить чужой заказ"
+
     service(store).cancel_order(20, store.users[1])
     assert store.orders[20].status == "cancelled"
-    with pytest.raises(ValueError, match="нельзя отменить"):
+
+    with pytest.raises(ValueError) as error:
         service(store).cancel_order(20, store.users[1])
+    assert str(error.value) == "Заказ нельзя отменить в текущем статусе"
 
 
 def test_admin_can_cancel_foreign_order_but_unknown_order_is_404(store):
     service(store).cancel_order(20, store.users[3])
     assert store.orders[20].status == "cancelled"
-    with pytest.raises(NotFoundError):
+    with pytest.raises(NotFoundError) as error:
         service(store).cancel_order(999, store.users[3])
+    assert str(error.value) == "Заказ не найден"
 
 
 def test_pay_order_publishes_rub_total_and_preserves_legacy_amount(store):
@@ -86,19 +91,26 @@ def test_pay_order_publishes_rub_total_and_preserves_legacy_amount(store):
 
 
 def test_pay_order_enforces_owner_and_state(store):
-    with pytest.raises(ForbiddenError):
+    with pytest.raises(ForbiddenError) as error:
         service(store).pay_order(20, store.users[2])
+    assert str(error.value) == "Нельзя оплатить чужой заказ"
+
     service(store).pay_order(20, store.users[1])
-    with pytest.raises(ConflictError):
+
+    with pytest.raises(ConflictError) as error:
         service(store).pay_order(20, store.users[1])
-    with pytest.raises(NotFoundError):
+    assert str(error.value) == "Заказ уже оплачен"
+
+    with pytest.raises(NotFoundError) as error:
         service(store).pay_order(999, store.users[1])
+    assert str(error.value) == "Заказ не найден"
 
 
 def test_pay_order_rejects_cancelled_order_and_handles_missing_publisher(store):
     store.orders[20].status = "cancelled"
-    with pytest.raises(ValueError, match="нельзя оплатить"):
+    with pytest.raises(ValueError) as error:
         service(store).pay_order(20, store.users[1])
+    assert str(error.value) == "Заказ нельзя оплатить в текущем статусе"
     store.orders[20].status = "processing"
     service(store, publisher=None).pay_order(20, store.users[1])
     assert store.orders[20].status == "paid"
