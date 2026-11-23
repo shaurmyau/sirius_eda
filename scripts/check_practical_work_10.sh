@@ -34,7 +34,7 @@ case "$mode" in
     mutmut results
     ;;
   load)
-    exec ./scripts/run_load_test.sh
+    exec bash ./scripts/run_load_test.sh
     ;;
   all)
     pytest -m "not integration" -v
