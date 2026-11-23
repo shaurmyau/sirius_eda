@@ -2,7 +2,7 @@
 # Диагностика Sirius.Еда / практическая работа №9.
 # Запускать из корня проекта: bash diagnose_observability.sh
 # Полный тест заказа (создаёт и оплачивает реальный тестовый заказ):
-# TOKEN='...' ITEM_ID=1 RUN_ORDER_TEST=1 bash diagnose_observability.sh
+# Сквозной тест автоматически регистрирует пользователя, получает токен и использует ITEM_ID=1.
 # Тест Sentry (намеренно вызывает HTTP 500):
 # RUN_SENTRY_TEST=1 bash diagnose_observability.sh
 
@@ -13,7 +13,7 @@ PROMETHEUS_URL="${PROMETHEUS_URL:-http://127.0.0.1:9090}"
 GRAFANA_URL="${GRAFANA_URL:-http://127.0.0.1:3000}"
 JAEGER_URL="${JAEGER_URL:-http://127.0.0.1:16686}"
 TIMEOUT="${CHECK_TIMEOUT:-5}"
-RUN_ORDER_TEST="${RUN_ORDER_TEST:-0}"
+RUN_ORDER_TEST="${RUN_ORDER_TEST:-1}"
 RUN_SENTRY_TEST="${RUN_SENTRY_TEST:-0}"
 TOKEN="${TOKEN:-}"
 ITEM_ID="${ITEM_ID:-}"
@@ -339,60 +339,174 @@ check_redis_exporter() {
 
 check_order_flow() {
   local cid="diag-order-$(date +%Y%m%d%H%M%S)-$RANDOM"
-  local create_body="$TMP_DIR/order_create.json" pay_body="$TMP_DIR/order_pay.json"
-  local create_status order_id pay_status
+  local email password register_body login_body topup_body
+  local token create_body pay_body create_status pay_status order_id
+  local item_body item_price topup_amount found=0 file suffix
+  local item_status register_status login_status topup_status
 
-  if [[ -z "$TOKEN" || -z "$ITEM_ID" ]]; then
-    printf 'Для сквозного теста нужны обе переменные: TOKEN и ITEM_ID.\n'
-    printf 'Передайте их так: TOKEN="..." ITEM_ID=1 RUN_ORDER_TEST=1 bash diagnose_observability.sh\n'
-    return 2
-  fi
-  if [[ ! "$ITEM_ID" =~ ^[0-9]+$ ]]; then
-    printf 'ITEM_ID должен быть числом, получено: %s\n' "$ITEM_ID"
+  # Отдельная учётная запись для каждого запуска.
+  suffix="$(date +%Y%m%d%H%M%S)-$RANDOM"
+  email="observability-test-${suffix}@gmail.com"
+  password="ObsTest-${suffix}-Aa9!"
+  ITEM_ID=1
+
+  register_body="$TMP_DIR/order_register.json"
+  login_body="$TMP_DIR/order_login.json"
+  topup_body="$TMP_DIR/order_topup.json"
+  item_body="$TMP_DIR/order_item.json"
+  create_body="$TMP_DIR/order_create.json"
+  pay_body="$TMP_DIR/order_pay.json"
+
+  printf 'Тестовый X-Correlation-ID: %s\n' "$cid"
+  printf 'Тестовый пользователь: %s\n' "$email"
+  printf 'Используемый ITEM_ID: %s\n' "$ITEM_ID"
+
+  # Проверка существования товара с ID=1 и получение его цены.
+  item_status="$(curl -sS --connect-timeout "$TIMEOUT" --max-time 15 \
+    -o "$item_body" -w '%{http_code}' "$API_URL/menu/items/$ITEM_ID" \
+    2>"$TMP_DIR/order_item_err")" || {
+      cat "$TMP_DIR/order_item_err"; return 1;
+    }
+  printf 'Проверка товара: HTTP %s\n' "$item_status"
+  cat "$item_body"; printf '\n'
+  [[ "$item_status" =~ ^2[0-9][0-9]$ ]] || {
+    printf 'Товар с ID=1 не найден или недоступен.\n'; return 1;
+  }
+
+  item_price="$(python3 - "$item_body" <<'PYPRICE'
+import json, sys
+try:
+    obj = json.load(open(sys.argv[1], encoding="utf-8"))
+    if isinstance(obj, dict):
+        obj = obj.get("item", obj)
+        print(float(obj.get("price", 0)))
+    else:
+        print(0)
+except Exception:
+    print(0)
+PYPRICE
+)"
+  if ! python3 - "$item_price" <<'PYCHECK'
+import sys
+try:
+    value = float(sys.argv[1])
+    raise SystemExit(0 if value > 0 else 1)
+except Exception:
+    raise SystemExit(1)
+PYCHECK
+  then
+    printf 'Не удалось определить положительную цену товара ID=1.\n'
     return 1
   fi
 
-  printf 'Тестовый X-Correlation-ID: %s\n' "$cid"
-  printf 'Создание заказа: POST %s/orders/create (item_id=%s, quantity=1)\n' "$API_URL" "$ITEM_ID"
-  create_status="$(curl -sS --connect-timeout "$TIMEOUT" --max-time 20 -o "$create_body" -w '%{http_code}' \
-    -X POST "$API_URL/orders/create" \
-    -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  # Новый пользователь имеет баланс 0. Пополнение на стоимость товара + 10.
+  topup_amount="$(python3 - "$item_price" <<'PYAMOUNT'
+import math, sys
+price = float(sys.argv[1])
+amount = math.ceil(price + 10)
+if amount > 50000:
+    raise SystemExit("Цена товара превышает лимит пополнения 50000")
+print(amount)
+PYAMOUNT
+)" || {
+    printf 'Невозможно пополнить баланс для товара ID=1.\n'
+    return 1
+  }
+
+  printf '\nРегистрация тестового пользователя: POST %s/users/register\n' "$API_URL"
+  register_status="$(curl -sS --connect-timeout "$TIMEOUT" --max-time 20 \
+    -o "$register_body" -w '%{http_code}' -X POST "$API_URL/users/register" \
+    -H 'Content-Type: application/json' \
+    -d "{\"email\":\"$email\",\"password\":\"$password\",\"role\":\"student\"}" \
+    2>"$TMP_DIR/order_register_err")" || {
+      cat "$TMP_DIR/order_register_err"; return 1;
+    }
+  printf 'Регистрация: HTTP %s\n' "$register_status"
+  cat "$register_body"; printf '\n'
+  [[ "$register_status" =~ ^2[0-9][0-9]$ ]] || return 1
+
+  printf '\nПолучение токена: POST %s/auth/login\n' "$API_URL"
+  login_status="$(curl -sS --connect-timeout "$TIMEOUT" --max-time 20 \
+    -o "$login_body" -w '%{http_code}' -X POST "$API_URL/auth/login" \
+    -H 'Content-Type: application/json' \
+    -d "{\"email\":\"$email\",\"password\":\"$password\"}" \
+    2>"$TMP_DIR/order_login_err")" || {
+      cat "$TMP_DIR/order_login_err"; return 1;
+    }
+  printf 'Авторизация: HTTP %s\n' "$login_status"
+  [[ "$login_status" =~ ^2[0-9][0-9]$ ]] || {
+    cat "$login_body"; printf '\n'; return 1;
+  }
+
+  token="$(python3 - "$login_body" <<'PYTOKEN'
+import json, sys
+try:
+    print(json.load(open(sys.argv[1], encoding="utf-8")).get("access_token", ""))
+except Exception:
+    print("")
+PYTOKEN
+)"
+  [[ -n "$token" ]] || {
+    printf 'В ответе авторизации отсутствует access_token.\n'
+    cat "$login_body"; printf '\n'; return 1;
+  }
+  printf 'Токен получен (значение скрыто).\n'
+
+  printf '\nПополнение баланса на %s: POST %s/users/me/topup\n' "$topup_amount" "$API_URL"
+  topup_status="$(curl -sS --connect-timeout "$TIMEOUT" --max-time 20 \
+    -o "$topup_body" -w '%{http_code}' -X POST \
+    "$API_URL/users/me/topup?amount=$topup_amount" \
+    -H "Authorization: Bearer $token" \
     -H "X-Correlation-ID: $cid" \
-    -d "{\"item_id\":$ITEM_ID,\"quantity\":1}" 2>"$TMP_DIR/order_create_err")" || {
+    2>"$TMP_DIR/order_topup_err")" || {
+      cat "$TMP_DIR/order_topup_err"; return 1;
+    }
+  printf 'Пополнение: HTTP %s\n' "$topup_status"
+  cat "$topup_body"; printf '\n'
+  [[ "$topup_status" =~ ^2[0-9][0-9]$ ]] || return 1
+
+  printf '\nСоздание заказа: POST %s/orders/create (item_id=1, quantity=1)\n' "$API_URL"
+  create_status="$(curl -sS --connect-timeout "$TIMEOUT" --max-time 20 \
+    -o "$create_body" -w '%{http_code}' -X POST "$API_URL/orders/create" \
+    -H "Authorization: Bearer $token" \
+    -H 'Content-Type: application/json' \
+    -H "X-Correlation-ID: $cid" \
+    -d "{\"item_id\":$ITEM_ID,\"quantity\":1}" \
+    2>"$TMP_DIR/order_create_err")" || {
       cat "$TMP_DIR/order_create_err"; return 1;
     }
   printf 'Ответ создания: HTTP %s\n' "$create_status"
   cat "$create_body"; printf '\n'
   [[ "$create_status" =~ ^2[0-9][0-9]$ ]] || return 1
 
-  order_id="$(python3 - "$create_body" <<'PY'
-import json,sys
+  order_id="$(python3 - "$create_body" <<'PYORDER'
+import json, sys
 try:
-    obj=json.load(open(sys.argv[1],encoding="utf-8"))
-    print(obj.get("order_id", ""))
+    print(json.load(open(sys.argv[1], encoding="utf-8")).get("order_id", ""))
 except Exception:
-    pass
-PY
+    print("")
+PYORDER
 )"
-  if [[ ! "$order_id" =~ ^[0-9]+$ ]]; then
-    printf 'Не удалось извлечь числовой order_id из ответа.\n'
-    return 1
-  fi
+  [[ "$order_id" =~ ^[0-9]+$ ]] || {
+    printf 'Не удалось извлечь числовой order_id.\n'; return 1;
+  }
   printf 'Извлечён ORDER_ID=%s\n' "$order_id"
 
-  printf 'Оплата заказа: POST %s/orders/%s/pay\n' "$API_URL" "$order_id"
-  pay_status="$(curl -sS --connect-timeout "$TIMEOUT" --max-time 20 -o "$pay_body" -w '%{http_code}' \
-    -X POST "$API_URL/orders/$order_id/pay" \
-    -H "Authorization: Bearer $TOKEN" -H "X-Correlation-ID: $cid" 2>"$TMP_DIR/order_pay_err")" || {
+  printf '\nПодтверждение оплаты: POST %s/orders/%s/pay\n' "$API_URL" "$order_id"
+  pay_status="$(curl -sS --connect-timeout "$TIMEOUT" --max-time 20 \
+    -o "$pay_body" -w '%{http_code}' -X POST \
+    "$API_URL/orders/$order_id/pay" \
+    -H "Authorization: Bearer $token" \
+    -H "X-Correlation-ID: $cid" \
+    2>"$TMP_DIR/order_pay_err")" || {
       cat "$TMP_DIR/order_pay_err"; return 1;
     }
   printf 'Ответ оплаты: HTTP %s\n' "$pay_status"
   cat "$pay_body"; printf '\n'
   [[ "$pay_status" =~ ^2[0-9][0-9]$ ]] || return 1
 
-  printf 'Ожидание обработки сообщения consumer\n'
-  sleep 3
-  local found=0 file
+  printf '\nОжидание обработки сообщения consumer...\n'
+  sleep 5
   for file in logs/api.log logs/kitchen.log logs/delivery.log logs/saga.log; do
     if [[ -f "$file" ]] && grep -Fq "$cid" "$file"; then
       found=$((found + 1))
@@ -402,10 +516,10 @@ PY
       printf 'Не найден в %s\n' "$file"
     fi
   done
-  printf '\nID использован в HTTP-запросах: %s; совпадение найдено в %d файлах логов.\n' "$cid" "$found"
+
+  printf '\nID использован в запросах: %s; совпадение найдено в %d файлах логов.\n' "$cid" "$found"
   [[ "$found" -ge 2 ]]
 }
-
 check_sentry_config() {
   local val=""
   if [[ -f .env ]]; then
@@ -471,7 +585,7 @@ run_step 'JSON-логи Saga' 'Проверка последних строк lo
 if [[ "$RUN_ORDER_TEST" == "1" ]]; then
   run_step 'Сквозной тест: создание и оплата заказа' 'POST /orders/create, затем POST /orders/{order_id}/pay; проверка одного correlation_id в логах' check_order_flow
 else
-  skip_step 'Сквозной тест заказа' 'TOKEN, ITEM_ID и RUN_ORDER_TEST=1' 'Не запускался, чтобы не создавать заказ и не списывать баланс без явного разрешения.'
+  skip_step 'Сквозной тест заказа' 'TOKEN, ITEM_ID и RUN_ORDER_TEST=1' 'Не запускался: для отключения установи RUN_ORDER_TEST=0.'
 fi
 
 if [[ "$RUN_SENTRY_TEST" == "1" ]]; then
