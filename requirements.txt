@@ -18,7 +18,7 @@ flower>=2.0.0
 grpcio>=1.60.0
 grpcio-tools>=1.60.0
 aio-pika>=9.4.0
-testcontainers>=4.0.0
+testcontainers[postgres]>=4.8.0
 structlog>=24.1.0
 prometheus-fastapi-instrumentator>=7.0.0
 sentry-sdk[fastapi]>=2.0.0
@@ -26,3 +26,8 @@ opentelemetry-api>=1.25.0
 opentelemetry-sdk>=1.25.0
 opentelemetry-exporter-otlp-proto-grpc>=1.25.0
 opentelemetry-instrumentation-fastapi>=0.46b0
+
+# Practical work 10: coverage, Pact contracts and mutation testing
+pytest-cov>=5.0.0
+pact-python>=3.2,<4
+mutmut==2.4.4
