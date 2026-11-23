@@ -13,6 +13,9 @@ from app.modules.orders.service import OrderService
 from app.permissions import Perm
 
 
+pytestmark = pytest.mark.integration
+
+
 def test_create_order_persists_and_debits_balance_in_postgres(
     postgres_session, monkeypatch
 ):
