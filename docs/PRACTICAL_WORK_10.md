@@ -11,14 +11,14 @@
 | Критерий | Команда | Что показать |
 |---|---|---|
 | Unit-тесты и пирамида тестов | `bash scripts/check_practical_work_10.sh fast` | Быстрые тесты сервисов и API без реального Docker |
-| 6–7: PostgreSQL Testcontainers | `./scripts/check_practical_work_10.sh integration` | `tests/integration/test_orders_postgres.py`: чистый PostgreSQL 15, Alembic upgrade, создание заказа через HTTP, запись в БД и списание баланса |
+| 6–7: PostgreSQL Testcontainers | `bash scripts/check_practical_work_10.sh integration` | `tests/integration/test_orders_postgres.py`: чистый PostgreSQL 15, Alembic upgrade, создание заказа через HTTP, запись в БД и списание баланса |
 | 6–7: RabbitMQ Testcontainers | та же команда | Реальная доставка сообщений, идемпотентность, fan-out, DLQ и Saga в `tests/integration/test_consumers_integration.py` |
 | 6–7: Locust | `bash scripts/run_load_test.sh` | RPS, failure rate, median/p95/p99 и CSV/HTML отчёты для 50/100/200 пользователей |
 | 8: GitHub Actions | вкладка Actions → **Sirius EDA tests** | Checks `tests` и `mutmut` на push и PR |
-| 9: Pact | `./scripts/check_practical_work_10.sh contract` | Pact V3 Async Message: проверка kitchen consumer и provider-сообщения из `OrderService.pay_order` |
-| 10: mutmut | `./scripts/check_practical_work_10.sh mutation` | Запуск мутантов только для `OrderService`, список killed/survived |
+| 9: Pact | `bash scripts/check_practical_work_10.sh contract` | Pact V3 Async Message: проверка kitchen consumer и provider-сообщения из `OrderService.pay_order` |
+| 10: mutmut | `bash scripts/check_practical_work_10.sh mutation` | Запуск мутантов только для `OrderService`, список killed/survived |
 
-Полный прогон: `./scripts/check_practical_work_10.sh all`. Для интеграционных тестов
+Полный прогон: `bash scripts/check_practical_work_10.sh all`. Для интеграционных тестов
 нужен запущенный Docker. В CI Docker доступен на GitHub-hosted runner; при `CI=true`
 недоступность Docker считается ошибкой, а не успешным пропуском.
 
@@ -30,7 +30,7 @@
 `postgres_session` открывает внешнюю транзакцию и использует savepoint для коммитов
 репозитория; после теста транзакция откатывается. Контейнер останавливается по завершении
 сессии. Можно указать отдельную тестовую БД переменной `POSTGRES_TEST_URL`, если нужен
-уже запущенный PostgreSQL.
+уже запущенный отдельный PostgreSQL, предназначенный только для тестов. Эта БД будет мигрирована до `head`.
 
 Тест `test_create_order_persists_and_debits_balance_in_postgres` проходит через
 FastAPI endpoint и SQL repository и проверяет:
@@ -41,7 +41,7 @@ FastAPI endpoint и SQL repository и проверяет:
 
 RabbitMQ остаётся отдельной интеграционной фикстурой: каждый тест очищает очереди и
 exchange проекта; production/dev брокер не используется, если явно не задан
-`RABBITMQ_TEST_URL`.
+`RABBITMQ_TEST_URL`. Фикстура удаляет очереди и exchange'ы проекта, поэтому никогда не указывайте URL рабочего брокера.
 
 ## 3. Locust: нагрузка и узкое место
 
@@ -57,7 +57,7 @@ uvicorn app.main:app --reload
 Во втором терминале:
 
 ```bash
-./scripts/run_load_test.sh
+bash scripts/run_load_test.sh
 ```
 
 Сценарий `locustfile.py` моделирует чтение всего меню (вес 7), категории (вес 2),
@@ -74,7 +74,7 @@ export LOCUST_ITEM_ID=1
 ```bash
 LOCUST_HOST=http://127.0.0.1:8000 \
 LOCUST_DURATION=90s LOCUST_SPAWN_RATE=10 LOCUST_STAGES="50 100 200" \
-./scripts/run_load_test.sh
+bash scripts/run_load_test.sh
 ```
 
 Результаты сохраняются в `reports/locust/`: `*_stats.csv`,
