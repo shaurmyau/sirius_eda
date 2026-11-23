@@ -46,7 +46,9 @@ def rabbit_url():
     try:
         from docker.types import Ulimit
         from testcontainers.core.container import DockerContainer
-    except ImportError:
+    except ImportError as exc:
+        if os.getenv("CI", "").lower() == "true":
+            pytest.fail(f"RabbitMQ Testcontainers dependency missing in CI: {exc}")
         pytest.skip("testcontainers не установлен: pip install testcontainers")
 
     container = None
