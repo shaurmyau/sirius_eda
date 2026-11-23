@@ -580,10 +580,10 @@ service name: `sirius-kitchen-worker`, `sirius-delivery-worker` и
 
 Быстрый запуск проверок:
 ```bash
-./scripts/check_practical_work_10.sh all
+bash scripts/check_practical_work_10.sh all
 ```
 
 Нагрузочный профиль (API должен быть запущен):
 ```bash
-./scripts/run_load_test.sh
+bash scripts/run_load_test.sh
 ```
