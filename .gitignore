@@ -4,3 +4,10 @@ __pycache__/
 .pytest_cache/
 .env
 .backups/
+
+# Practical work 10 outputs and mutation cache
+.coverage
+coverage.xml
+htmlcov/
+.mutmut-cache/
+reports/
