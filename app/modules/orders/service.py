@@ -1,9 +1,8 @@
 """Слой бизнес-логики orders. IDOR-проверка в сервисе."""
 import logging
-import uuid
 from collections.abc import Callable
-from datetime import datetime, timezone
 
+from app.core.order_events import build_order_paid_event
 from app.entities import User
 from app.exceptions import ConflictError, ForbiddenError, NotFoundError
 from app.modules.orders.repository import OrderRepository
@@ -69,13 +68,14 @@ class OrderService:
         amount = float(item.price * o.quantity) if item else 0.0
 
         self.repository.update_order_status(order_id, "paid")
-        self._publish("order.paid", {
-            "event_id": str(uuid.uuid4()),  # ключ идемпотентности для consumer'ов
-            "order_id": o.id,
-            "customer_id": o.user_id,
-            "amount": amount,
-            "occurred_at": datetime.now(timezone.utc).isoformat(),
-        })
+        self._publish(
+            "order.paid",
+            build_order_paid_event(
+                order_id=o.id,
+                customer_id=o.user_id,
+                total=amount,
+            ),
+        )
 
     def _publish(self, routing_key: str, payload: dict) -> None:
         if self.publisher is None:
