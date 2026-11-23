@@ -70,7 +70,6 @@ def test_order_paid_message_contract_is_compatible_with_both_sides(
     pact = Pact("kitchen", "sirius-monolith").with_specification("V3")
     (
         pact.upon_receiving(DESCRIPTION, "Async")
-        .given("order 55 has been paid")
         .with_body(
             {
                 "event_id": match.str("event-example-55"),
