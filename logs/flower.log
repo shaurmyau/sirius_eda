@@ -1,6 +1,6 @@
-[I 261123 15:28:04 command:177] Visit me at http://127.0.0.1:5555
-[I 261123 15:28:04 command:186] Broker: redis://localhost:6379//
-[I 261123 15:28:04 command:187] Registered tasks: 
+[I 261123 16:25:44 command:177] Visit me at http://127.0.0.1:5555
+[I 261123 16:25:44 command:186] Broker: redis://localhost:6379//
+[I 261123 16:25:44 command:187] Registered tasks: 
     ['app.tasks.orders.cleanup_old_task_logs',
      'app.tasks.orders.generate_order_pdf',
      'app.tasks.orders.send_order_email',
@@ -14,8 +14,8 @@
      'celery.group',
      'celery.map',
      'celery.starmap']
-[I 261123 15:28:04 mixins:228] Connected to redis://localhost:6379//
-[W 261123 15:28:05 inspector:98] Inspect method conf failed
-[W 261123 15:28:05 inspector:98] Inspect method registered failed
-[W 261123 15:28:05 inspector:98] Inspect method active_queues failed
-[W 261123 15:28:05 inspector:98] Inspect method stats failed
+[I 261123 16:25:44 mixins:228] Connected to redis://localhost:6379//
+[W 261123 16:25:45 inspector:98] Inspect method stats failed
+[W 261123 16:25:45 inspector:98] Inspect method conf failed
+[W 261123 16:25:45 inspector:98] Inspect method registered failed
+[W 261123 16:25:45 inspector:98] Inspect method active_queues failed

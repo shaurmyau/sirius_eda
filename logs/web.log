@@ -7,6 +7,6 @@
 - Local:         http://localhost:3001
 - Network:       http://10.82.193.187:3001
 - Environments: .env.local
-✓ Ready in 509ms
-✓ Running next.config.ts took 34ms
+✓ Ready in 618ms
+✓ Running next.config.ts took 39ms
 
