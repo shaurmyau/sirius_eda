@@ -565,3 +565,25 @@ OpenTelemetry включён по умолчанию. По умолчанию OT
 публикации RabbitMQ и consumer span кухни. В Jaeger consumer'ы имеют отдельные
 service name: `sirius-kitchen-worker`, `sirius-delivery-worker` и
 `sirius-order_saga-worker`; API по умолчанию называется `sirius-app`.
+
+
+---
+
+## Практическая работа № 10 — production testing (10/10)
+
+Ветка содержит интеграционные тесты PostgreSQL и RabbitMQ на Testcontainers, нагрузочный
+профиль Locust с отчётами для 50/100/200 пользователей, CI GitHub Actions, Pact V3
+контракт кухни и монолита и mutmut для проверки качества unit-тестов.
+
+Подробный порядок запуска, команды по каждому критерию оценивания, ожидаемые результаты,
+ссылки на dashboards и карта файлов: [docs/PRACTICAL_WORK_10.md](docs/PRACTICAL_WORK_10.md).
+
+Быстрый запуск проверок:
+```bash
+bash scripts/check_practical_work_10.sh all
+```
+
+Нагрузочный профиль (API должен быть запущен):
+```bash
+bash scripts/run_load_test.sh
+```

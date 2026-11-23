@@ -34,7 +34,9 @@ def test_pay_publishes_order_paid(store):
     assert routing_key == "order.paid"
     assert payload["order_id"] == 1
     assert payload["customer_id"] == 1
-    assert payload["amount"] == 60.0
+    assert payload["amount"] == 60.0  # backward-compatible field for delivery/Saga
+    assert payload["total"] == 60.0
+    assert payload["currency"] == "RUB"
     assert payload["event_id"]
 
 

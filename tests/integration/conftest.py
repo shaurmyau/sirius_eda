@@ -46,7 +46,9 @@ def rabbit_url():
     try:
         from docker.types import Ulimit
         from testcontainers.core.container import DockerContainer
-    except ImportError:
+    except ImportError as exc:
+        if os.getenv("CI", "").lower() == "true":
+            pytest.fail(f"RabbitMQ Testcontainers dependency missing in CI: {exc}")
         pytest.skip("testcontainers не установлен: pip install testcontainers")
 
     container = None
@@ -67,6 +69,8 @@ def rabbit_url():
                 container.stop()
             except Exception:
                 pass
+        if os.getenv("CI", "").lower() == "true":
+            pytest.fail(f"Docker/RabbitMQ недоступен в CI: {exc!r}")
         pytest.skip(f"Docker/RabbitMQ недоступен: {exc!r}")
     try:
         yield url
@@ -93,3 +97,77 @@ def broker(rabbit_url):
     asyncio.run(_reset(rabbit_url))
     yield rabbit_url
     asyncio.run(_reset(rabbit_url))
+
+
+@pytest.fixture(scope="session")
+def postgres_url():
+    """Одноразовая PostgreSQL 15 с production-схемой, накатываемой Alembic."""
+    from app.core.config import settings
+
+    container = None
+    url = os.getenv("POSTGRES_TEST_URL")
+    if not url:
+        try:
+            from testcontainers.postgres import PostgresContainer
+        except ImportError as exc:
+            if os.getenv("CI", "").lower() == "true":
+                pytest.fail(f"PostgreSQL Testcontainers dependency missing: {exc}")
+            pytest.skip("Установите testcontainers[postgres] для PostgreSQL integration tests")
+
+        container = PostgresContainer(
+            "postgres:15",
+            username="sirius_test",
+            password="sirius_test",
+            dbname="sirius_test",
+        )
+        try:
+            container.start()
+            url = container.get_connection_url()
+        except Exception as exc:
+            try:
+                container.stop()
+            except Exception:
+                pass
+            if os.getenv("CI", "").lower() == "true":
+                pytest.fail(f"PostgreSQL Testcontainer не запустился в CI: {exc!r}")
+            pytest.skip(f"Docker/PostgreSQL недоступен: {exc!r}")
+
+    original_url = settings.DATABASE_URL
+    settings.DATABASE_URL = url
+    try:
+        from alembic import command
+        from alembic.config import Config
+
+        alembic_cfg = Config("alembic.ini")
+        # ConfigParser treats percent signs as interpolation markers.
+        alembic_cfg.set_main_option("sqlalchemy.url", url.replace("%", "%%"))
+        command.upgrade(alembic_cfg, "head")
+        yield url
+    finally:
+        settings.DATABASE_URL = original_url
+        if container is not None:
+            container.stop()
+
+
+@pytest.fixture
+def postgres_session(postgres_url):
+    """Session bound to an outer transaction; repository commits use savepoints."""
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import Session
+
+    engine = create_engine(postgres_url, pool_pre_ping=True)
+    connection = engine.connect()
+    outer_transaction = connection.begin()
+    session = Session(
+        bind=connection,
+        join_transaction_mode="create_savepoint",
+        expire_on_commit=False,
+    )
+    try:
+        yield session
+    finally:
+        session.close()
+        if outer_transaction.is_active:
+            outer_transaction.rollback()
+        connection.close()
+        engine.dispose()
