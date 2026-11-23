@@ -102,7 +102,7 @@ def test_order_paid_message_contract_is_compatible_with_both_sides(
         .message_handler(
             {
                 DESCRIPTION: {
-                    "contents": json.dumps(actual_event),
+                    "contents": json.dumps(actual_event).encode("utf-8"),
                     "metadata": {"contentType": "application/json"},
                     "content_type": "application/json",
                 }
