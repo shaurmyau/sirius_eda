@@ -153,3 +153,9 @@ Exception: Email service unavailable
 [2026-11-23 15:52:04,766: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[703bc8e8-f0bf-48d1-9025-110ae31799dc] received
 [2026-11-23 15:52:04,767: WARNING/MainProcess] [Beat] Cleaning up old task logs...
 [2026-11-23 15:52:04,767: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[703bc8e8-f0bf-48d1-9025-110ae31799dc] succeeded in 0.0006999040001574031s: 'Cleanup complete'
+[2026-11-23 15:53:04,766: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[889657d6-cd58-4749-b7a7-efce5f2f0acf] received
+[2026-11-23 15:53:04,767: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-23 15:53:04,767: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[889657d6-cd58-4749-b7a7-efce5f2f0acf] succeeded in 0.0007100630000422825s: 'Cleanup complete'
+[2026-11-23 15:54:04,766: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[fdb90ad0-2b7d-456d-ac40-cca7f7dfa375] received
+[2026-11-23 15:54:04,767: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-23 15:54:04,767: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[fdb90ad0-2b7d-456d-ac40-cca7f7dfa375] succeeded in 0.0007343299998865405s: 'Cleanup complete'

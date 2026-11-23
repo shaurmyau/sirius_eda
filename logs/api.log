@@ -1437,3 +1437,45 @@ INFO:     172.19.0.4:47674 - "GET /metrics HTTP/1.1" 200 OK
 INFO:     172.19.0.4:47674 - "GET /metrics HTTP/1.1" 200 OK
 {"method": "GET", "path": "/metrics", "status_code": 200, "duration_ms": 2.18, "correlation_id": "d855976b-a7a3-47f5-ba8e-3c501fe60f2c", "event": "http_request_completed", "logger": "http", "level": "info", "timestamp": "2026-11-23T12:52:35.899269Z"}
 INFO:     172.19.0.4:47674 - "GET /metrics HTTP/1.1" 200 OK
+{"method": "GET", "path": "/metrics", "status_code": 200, "duration_ms": 2.15, "correlation_id": "64053a94-9265-4be6-865d-0ffad275b21e", "event": "http_request_completed", "logger": "http", "level": "info", "timestamp": "2026-11-23T12:52:40.898682Z"}
+INFO:     172.19.0.4:47674 - "GET /metrics HTTP/1.1" 200 OK
+{"method": "GET", "path": "/metrics", "status_code": 200, "duration_ms": 2.15, "correlation_id": "776b40d3-8b5f-444d-b5b2-b0156bed8055", "event": "http_request_completed", "logger": "http", "level": "info", "timestamp": "2026-11-23T12:52:45.899542Z"}
+INFO:     172.19.0.4:47674 - "GET /metrics HTTP/1.1" 200 OK
+{"method": "GET", "path": "/metrics", "status_code": 200, "duration_ms": 1.97, "correlation_id": "f3066d16-fd31-4bec-a1d1-546ef623f992", "event": "http_request_completed", "logger": "http", "level": "info", "timestamp": "2026-11-23T12:52:50.899198Z"}
+INFO:     172.19.0.4:47674 - "GET /metrics HTTP/1.1" 200 OK
+{"method": "GET", "path": "/metrics", "status_code": 200, "duration_ms": 1.99, "correlation_id": "5e0ab2c8-e2fb-461d-8477-6018a2ed068d", "event": "http_request_completed", "logger": "http", "level": "info", "timestamp": "2026-11-23T12:52:55.898736Z"}
+INFO:     172.19.0.4:47674 - "GET /metrics HTTP/1.1" 200 OK
+{"method": "GET", "path": "/metrics", "status_code": 200, "duration_ms": 2.25, "correlation_id": "7d3b6be6-4408-425c-beb2-aaf3361a5915", "event": "http_request_completed", "logger": "http", "level": "info", "timestamp": "2026-11-23T12:53:00.899159Z"}
+INFO:     172.19.0.4:47674 - "GET /metrics HTTP/1.1" 200 OK
+{"method": "GET", "path": "/metrics", "status_code": 200, "duration_ms": 1.99, "correlation_id": "9e1106b4-7d32-4466-8dcd-f1cc7ab67cb9", "event": "http_request_completed", "logger": "http", "level": "info", "timestamp": "2026-11-23T12:53:05.899190Z"}
+INFO:     172.19.0.4:47674 - "GET /metrics HTTP/1.1" 200 OK
+{"method": "GET", "path": "/metrics", "status_code": 200, "duration_ms": 2.03, "correlation_id": "cfffe510-c983-4c32-8d40-890c49a4eab7", "event": "http_request_completed", "logger": "http", "level": "info", "timestamp": "2026-11-23T12:53:10.898718Z"}
+INFO:     172.19.0.4:47674 - "GET /metrics HTTP/1.1" 200 OK
+{"method": "GET", "path": "/metrics", "status_code": 200, "duration_ms": 2.26, "correlation_id": "79d2e429-40b7-4964-9d9e-1e375e709e11", "event": "http_request_completed", "logger": "http", "level": "info", "timestamp": "2026-11-23T12:53:15.898954Z"}
+INFO:     172.19.0.4:47674 - "GET /metrics HTTP/1.1" 200 OK
+{"method": "GET", "path": "/metrics", "status_code": 200, "duration_ms": 2.34, "correlation_id": "89f1a8ff-f951-4ae1-8615-a1e4581788d1", "event": "http_request_completed", "logger": "http", "level": "info", "timestamp": "2026-11-23T12:53:20.898585Z"}
+INFO:     172.19.0.4:47674 - "GET /metrics HTTP/1.1" 200 OK
+{"method": "GET", "path": "/metrics", "status_code": 200, "duration_ms": 1.92, "correlation_id": "4060b3b2-3661-4548-8029-ae58246b5e10", "event": "http_request_completed", "logger": "http", "level": "info", "timestamp": "2026-11-23T12:53:25.898664Z"}
+INFO:     172.19.0.4:47674 - "GET /metrics HTTP/1.1" 200 OK
+{"method": "GET", "path": "/metrics", "status_code": 200, "duration_ms": 1.82, "correlation_id": "7908acac-d421-426e-96bd-e18daf5956ad", "event": "http_request_completed", "logger": "http", "level": "info", "timestamp": "2026-11-23T12:53:30.898069Z"}
+INFO:     172.19.0.4:47674 - "GET /metrics HTTP/1.1" 200 OK
+{"method": "GET", "path": "/metrics", "status_code": 200, "duration_ms": 1.76, "correlation_id": "3c9c3676-eefe-4691-a713-d3f366a69095", "event": "http_request_completed", "logger": "http", "level": "info", "timestamp": "2026-11-23T12:53:35.898613Z"}
+INFO:     172.19.0.4:47674 - "GET /metrics HTTP/1.1" 200 OK
+{"method": "GET", "path": "/metrics", "status_code": 200, "duration_ms": 1.98, "correlation_id": "dfb87897-7686-4e68-a6d0-76ba8c5add40", "event": "http_request_completed", "logger": "http", "level": "info", "timestamp": "2026-11-23T12:53:40.898050Z"}
+INFO:     172.19.0.4:47674 - "GET /metrics HTTP/1.1" 200 OK
+{"method": "GET", "path": "/metrics", "status_code": 200, "duration_ms": 2.21, "correlation_id": "2e7fb2fc-7fdb-4be4-bf5d-643c4d12006d", "event": "http_request_completed", "logger": "http", "level": "info", "timestamp": "2026-11-23T12:53:45.898659Z"}
+INFO:     172.19.0.4:47674 - "GET /metrics HTTP/1.1" 200 OK
+{"method": "GET", "path": "/metrics", "status_code": 200, "duration_ms": 2.22, "correlation_id": "9d9a2607-a4ab-4938-a5a4-3da9059e1e2a", "event": "http_request_completed", "logger": "http", "level": "info", "timestamp": "2026-11-23T12:53:50.899255Z"}
+INFO:     172.19.0.4:47674 - "GET /metrics HTTP/1.1" 200 OK
+{"method": "GET", "path": "/metrics", "status_code": 200, "duration_ms": 2.18, "correlation_id": "b945bfc0-8257-4128-bc10-81b9c9198382", "event": "http_request_completed", "logger": "http", "level": "info", "timestamp": "2026-11-23T12:53:55.900153Z"}
+INFO:     172.19.0.4:47674 - "GET /metrics HTTP/1.1" 200 OK
+{"method": "GET", "path": "/metrics", "status_code": 200, "duration_ms": 2.21, "correlation_id": "daa0994e-006c-43ba-9634-e8923deead46", "event": "http_request_completed", "logger": "http", "level": "info", "timestamp": "2026-11-23T12:54:00.898446Z"}
+INFO:     172.19.0.4:47674 - "GET /metrics HTTP/1.1" 200 OK
+{"method": "GET", "path": "/metrics", "status_code": 200, "duration_ms": 2.17, "correlation_id": "7866ca7e-0c4c-4119-b6b3-7d7f7eadcca5", "event": "http_request_completed", "logger": "http", "level": "info", "timestamp": "2026-11-23T12:54:05.899068Z"}
+INFO:     172.19.0.4:47674 - "GET /metrics HTTP/1.1" 200 OK
+{"method": "GET", "path": "/metrics", "status_code": 200, "duration_ms": 2.09, "correlation_id": "5cdb5863-00e1-4ac5-9f14-60cb1a570293", "event": "http_request_completed", "logger": "http", "level": "info", "timestamp": "2026-11-23T12:54:10.898643Z"}
+INFO:     172.19.0.4:47674 - "GET /metrics HTTP/1.1" 200 OK
+{"method": "GET", "path": "/metrics", "status_code": 200, "duration_ms": 2.36, "correlation_id": "364b02a5-82a2-46e6-bd18-b41f37b2b0be", "event": "http_request_completed", "logger": "http", "level": "info", "timestamp": "2026-11-23T12:54:15.899428Z"}
+INFO:     172.19.0.4:47674 - "GET /metrics HTTP/1.1" 200 OK
+{"method": "GET", "path": "/metrics", "status_code": 200, "duration_ms": 2.08, "correlation_id": "9c664de7-7207-4874-9a36-ade08897444b", "event": "http_request_completed", "logger": "http", "level": "info", "timestamp": "2026-11-23T12:54:20.898694Z"}
+INFO:     172.19.0.4:47674 - "GET /metrics HTTP/1.1" 200 OK

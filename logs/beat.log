@@ -23,3 +23,5 @@
 [2026-11-23 15:50:04,765: INFO/MainProcess] Scheduler: Sending due task cleanup-old-task-logs-every-minute (app.tasks.orders.cleanup_old_task_logs)
 [2026-11-23 15:51:04,765: INFO/MainProcess] Scheduler: Sending due task cleanup-old-task-logs-every-minute (app.tasks.orders.cleanup_old_task_logs)
 [2026-11-23 15:52:04,765: INFO/MainProcess] Scheduler: Sending due task cleanup-old-task-logs-every-minute (app.tasks.orders.cleanup_old_task_logs)
+[2026-11-23 15:53:04,765: INFO/MainProcess] Scheduler: Sending due task cleanup-old-task-logs-every-minute (app.tasks.orders.cleanup_old_task_logs)
+[2026-11-23 15:54:04,765: INFO/MainProcess] Scheduler: Sending due task cleanup-old-task-logs-every-minute (app.tasks.orders.cleanup_old_task_logs)
