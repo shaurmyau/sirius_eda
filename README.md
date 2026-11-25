@@ -587,3 +587,9 @@ bash scripts/check_practical_work_10.sh all
 ```bash
 bash scripts/run_load_test.sh
 ```
+
+---
+
+## Шпаргалка для защиты практической работы № 10
+
+Краткий сценарий демонстрации, команды проверок, адреса сервисов/портов и карта критериев «балл → сервис → файлы»: [docs/DEMO_CHEATSHEET.md](docs/DEMO_CHEATSHEET.md).
