@@ -214,20 +214,26 @@ class SqlMenuRepository(MenuRepository):
             envelope={"status": "success", "category": category},
         )
 
-    def get_all_json(self) -> str | None:
+    def _read_cache_json(self, key: str) -> str | None:
+        """Read a pre-serialized cache entry and instrument the fast HTTP path."""
+        started_at = time.perf_counter()
         try:
-            return redis_client.get(CACHE_KEY_ALL)
+            raw = redis_client.get(key)
+            record_menu_cache_operation(
+                "read", "hit" if raw is not None else "miss", started_at
+            )
+            return raw
         except Exception as exc:
-            log.warning("cache read error [%s]: %s", CACHE_KEY_ALL, exc)
+            record_menu_cache_operation("read", "error", started_at)
+            log.warning("cache read error [%s]: %s", key, exc)
             return None
+
+    def get_all_json(self) -> str | None:
+        return self._read_cache_json(CACHE_KEY_ALL)
 
     def get_category_json(self, category: str) -> str | None:
         key = CACHE_KEY_CATEGORY.format(category=category)
-        try:
-            return redis_client.get(key)
-        except Exception as exc:
-            log.warning("cache read error [%s]: %s", key, exc)
-            return None
+        return self._read_cache_json(key)
 
     def save_menu_item(self, name: str, price: float, category: str = "food") -> MenuItem:
         row = MenuItemModel(name=name, price=price, is_available=True, category=category)
