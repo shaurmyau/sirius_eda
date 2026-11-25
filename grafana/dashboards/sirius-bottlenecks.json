@@ -120,7 +120,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum by (handler) (rate(http_requests_total{status=\"5xx\"}[1m])) or vector(0)",
+          "expr": "sum by (handler) (rate(http_requests_total{status=\"5xx\"}[1m])) or on() vector(0)",
           "legendFormat": "{{handler}}"
         }
       ],
@@ -437,7 +437,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum by (operation) (rate(sirius_db_query_errors_total[1m])) or vector(0)",
+          "expr": "sum by (operation) (rate(sirius_db_query_errors_total[1m])) or on() vector(0)",
           "legendFormat": "{{operation}}"
         }
       ],
