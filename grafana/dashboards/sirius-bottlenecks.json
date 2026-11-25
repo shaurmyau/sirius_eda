@@ -120,7 +120,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum by (handler) (rate(http_requests_total{status=\"5xx\"}[1m]))",
+          "expr": "sum by (handler) (rate(http_requests_total{status=\"5xx\"}[1m])) or vector(0)",
           "legendFormat": "{{handler}}"
         }
       ],
@@ -437,7 +437,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum by (operation) (rate(sirius_db_query_errors_total[1m]))",
+          "expr": "sum by (operation) (rate(sirius_db_query_errors_total[1m])) or vector(0)",
           "legendFormat": "{{operation}}"
         }
       ],
@@ -596,7 +596,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "100 * sum(rate(pg_stat_database_blks_hit{datname=\"sirius_food\"}[5m])) / clamp_min(sum(rate(pg_stat_database_blks_hit{datname=\"sirius_food\"}[5m])) + sum(rate(pg_stat_database_blks_read{datname=\"sirius_food\"}[5m])), 1e-9)",
+          "expr": "(100 * sum(rate(pg_stat_database_blks_hit{datname=\"sirius_food\"}[5m])) / clamp_min(sum(rate(pg_stat_database_blks_hit{datname=\"sirius_food\"}[5m])) + sum(rate(pg_stat_database_blks_read{datname=\"sirius_food\"}[5m])), 1e-9)) or vector(0)",
           "legendFormat": "buffer cache hit"
         }
       ],
@@ -642,7 +642,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum(rate(pg_stat_database_deadlocks{datname=\"sirius_food\"}[5m]))",
+          "expr": "sum(rate(pg_stat_database_deadlocks{datname=\"sirius_food\"}[5m])) or vector(0)",
           "legendFormat": "deadlocks/sec"
         }
       ],
@@ -1132,5 +1132,5 @@
   "timezone": "browser",
   "title": "Sirius.Еда — Bottleneck diagnostics",
   "uid": "sirius-bottleneck-diagnostics",
-  "version": 1
+  "version": 2
 }
