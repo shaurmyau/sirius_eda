@@ -55,8 +55,6 @@ def test_create_order_persists_and_debits_balance_in_postgres(
     app.dependency_overrides[get_current_user] = lambda: principal
     app.dependency_overrides[get_order_service] = lambda: service
     try:
-        # Deliberately do not enter TestClient as a context manager: this test
-        # exercises the request stack, not production startup side effects.
         response = TestClient(app).post(
             "/orders/create",
             json={"item_id": item_row.id, "quantity": 2},

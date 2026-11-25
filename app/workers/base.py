@@ -25,7 +25,7 @@ from opentelemetry import propagate
 from opentelemetry.trace import SpanKind, Status, StatusCode
 import structlog
 
-log = logging.getLogger("workers")
+log = structlog.get_logger("workers")
 
 Handler = Callable[[object, dict], list[OutEvent]]
 

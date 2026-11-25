@@ -1,10 +1,10 @@
  
  -------------- celery@zahar-GIGABYTE-GAMING-A16-5VH v5.6.3 (recovery)
 --- ***** ----- 
--- ******* ---- Linux-7.0.0-43-generic-x86_64-with-glibc2.43 2026-11-23 15:28:04
+-- ******* ---- Linux-7.0.0-43-generic-x86_64-with-glibc2.43 2026-11-25 10:03:23
 - *** --- * --- 
 - ** ---------- [config]
-- ** ---------- .> app:         sirius_food:0x7c2ad4ed86e0
+- ** ---------- .> app:         sirius_food:0x75fbc840c6e0
 - ** ---------- .> transport:   redis://localhost:6379//
 - ** ---------- .> results:     redis://localhost:6379/
 - *** --- * --- .> concurrency: 16 (solo)
@@ -20,142 +20,833 @@
   . app.tasks.orders.send_order_email
   . app.tasks.orders.send_order_sms
 
-[2026-11-23 15:28:04,736: INFO/MainProcess] Connected to redis://localhost:6379//
-[2026-11-23 15:28:04,738: INFO/MainProcess] mingle: searching for neighbors
-[2026-11-23 15:28:05,746: INFO/MainProcess] mingle: all alone
-[2026-11-23 15:28:05,757: INFO/MainProcess] celery@zahar-GIGABYTE-GAMING-A16-5VH ready.
-[2026-11-23 15:28:09,717: INFO/MainProcess] Events of group {task} enabled by remote.
-[2026-11-23 15:28:25,247: INFO/MainProcess] Task app.tasks.orders.generate_order_pdf[1fa60650-d5c2-4b06-aeda-91fd31dab0b7] received
-[2026-11-23 15:28:27,252: INFO/MainProcess] Task app.tasks.orders.generate_order_pdf[1fa60650-d5c2-4b06-aeda-91fd31dab0b7] succeeded in 2.0045025460001398s: 'PDF generated for order 11'
-[2026-11-23 15:28:27,254: INFO/MainProcess] Task app.tasks.orders.send_order_email[8c75e732-1622-4bbd-96a4-70361db09d85] received
-[2026-11-23 15:28:28,255: INFO/MainProcess] Task app.tasks.orders.send_order_email[8c75e732-1622-4bbd-96a4-70361db09d85] succeeded in 1.0009844609999163s: 'Email sent to observability-test-20261123152824-13544@gmail.com for order 11'
-[2026-11-23 15:28:51,715: INFO/MainProcess] Task app.tasks.orders.generate_order_pdf[85dedad4-9748-470d-b412-b7642dc40107] received
-[2026-11-23 15:28:53,716: INFO/MainProcess] Task app.tasks.orders.generate_order_pdf[85dedad4-9748-470d-b412-b7642dc40107] succeeded in 2.001256006999938s: 'PDF generated for order 12'
-[2026-11-23 15:28:53,718: INFO/MainProcess] Task app.tasks.orders.send_order_email[c19ed62b-156c-45be-8e15-e1da453a5554] received
-[2026-11-23 15:28:54,719: INFO/MainProcess] Task app.tasks.orders.send_order_email[c19ed62b-156c-45be-8e15-e1da453a5554] succeeded in 1.0007301240000288s: 'Email sent to observability-test-20261123152851-11364@gmail.com for order 12'
-[2026-11-23 15:29:04,774: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[67b93e43-a0ad-49cf-a545-f5281e4f68fd] received
-[2026-11-23 15:29:04,774: WARNING/MainProcess] [Beat] Cleaning up old task logs...
-[2026-11-23 15:29:04,775: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[67b93e43-a0ad-49cf-a545-f5281e4f68fd] succeeded in 0.0005668159999459021s: 'Cleanup complete'
-[2026-11-23 15:30:04,766: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[c9d3b82e-7d03-4276-9308-07627d20ccc4] received
-[2026-11-23 15:30:04,766: WARNING/MainProcess] [Beat] Cleaning up old task logs...
-[2026-11-23 15:30:04,767: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[c9d3b82e-7d03-4276-9308-07627d20ccc4] succeeded in 0.0005717249998724583s: 'Cleanup complete'
-[2026-11-23 15:31:04,766: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[f2feb75b-f12c-4855-bbbd-3283dfea4816] received
-[2026-11-23 15:31:04,766: WARNING/MainProcess] [Beat] Cleaning up old task logs...
-[2026-11-23 15:31:04,767: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[f2feb75b-f12c-4855-bbbd-3283dfea4816] succeeded in 0.0005884830000013608s: 'Cleanup complete'
-[2026-11-23 15:31:56,615: INFO/MainProcess] Task app.tasks.orders.generate_order_pdf[e93d5ab1-fb0e-4c08-ba08-ea09738671f0] received
-[2026-11-23 15:31:58,617: INFO/MainProcess] Task app.tasks.orders.generate_order_pdf[e93d5ab1-fb0e-4c08-ba08-ea09738671f0] succeeded in 2.001405377999845s: 'PDF generated for order 13'
-[2026-11-23 15:31:58,619: INFO/MainProcess] Task app.tasks.orders.send_order_email[14fd0aa9-037b-4470-894a-c818b5c6579f] received
-[2026-11-23 15:31:59,620: INFO/MainProcess] Task app.tasks.orders.send_order_email[14fd0aa9-037b-4470-894a-c818b5c6579f] succeeded in 1.0011694840000018s: 'Email sent to observability-test-20261123153156-8020@gmail.com for order 13'
-[2026-11-23 15:32:04,766: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[63b22d06-c593-4c93-94f6-d628662db8ab] received
-[2026-11-23 15:32:04,766: WARNING/MainProcess] [Beat] Cleaning up old task logs...
-[2026-11-23 15:32:04,767: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[63b22d06-c593-4c93-94f6-d628662db8ab] succeeded in 0.0009144629998445453s: 'Cleanup complete'
-[2026-11-23 15:33:04,766: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[002c048f-9329-4eec-8fc2-46a49a9f28f1] received
-[2026-11-23 15:33:04,766: WARNING/MainProcess] [Beat] Cleaning up old task logs...
-[2026-11-23 15:33:04,767: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[002c048f-9329-4eec-8fc2-46a49a9f28f1] succeeded in 0.0005846749997999723s: 'Cleanup complete'
-[2026-11-23 15:34:04,766: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[baa076df-c8ef-42ee-b516-7129caa3f589] received
-[2026-11-23 15:34:04,766: WARNING/MainProcess] [Beat] Cleaning up old task logs...
-[2026-11-23 15:34:04,767: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[baa076df-c8ef-42ee-b516-7129caa3f589] succeeded in 0.0006758770000487857s: 'Cleanup complete'
-[2026-11-23 15:35:04,766: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[06bd1e4c-eb83-4c59-9c50-207fb66babc1] received
-[2026-11-23 15:35:04,766: WARNING/MainProcess] [Beat] Cleaning up old task logs...
-[2026-11-23 15:35:04,767: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[06bd1e4c-eb83-4c59-9c50-207fb66babc1] succeeded in 0.0006628710002587468s: 'Cleanup complete'
-[2026-11-23 15:36:04,766: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[fe0c177f-db50-4f46-bd64-831cfc0af128] received
-[2026-11-23 15:36:04,766: WARNING/MainProcess] [Beat] Cleaning up old task logs...
-[2026-11-23 15:36:04,767: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[fe0c177f-db50-4f46-bd64-831cfc0af128] succeeded in 0.0006618390002586239s: 'Cleanup complete'
-[2026-11-23 15:37:04,766: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[432a297a-db52-4201-84ab-f72fd4586439] received
-[2026-11-23 15:37:04,767: WARNING/MainProcess] [Beat] Cleaning up old task logs...
-[2026-11-23 15:37:04,768: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[432a297a-db52-4201-84ab-f72fd4586439] succeeded in 0.0009291609999309003s: 'Cleanup complete'
-[2026-11-23 15:38:04,766: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[fb2cc9c6-4ec8-47f6-96a2-91ef7cafb85f] received
-[2026-11-23 15:38:04,767: WARNING/MainProcess] [Beat] Cleaning up old task logs...
-[2026-11-23 15:38:04,767: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[fb2cc9c6-4ec8-47f6-96a2-91ef7cafb85f] succeeded in 0.0007706280002821586s: 'Cleanup complete'
-[2026-11-23 15:39:04,766: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[90a13c64-4be8-4679-b42d-acb4ed0f0baf] received
-[2026-11-23 15:39:04,767: WARNING/MainProcess] [Beat] Cleaning up old task logs...
-[2026-11-23 15:39:04,768: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[90a13c64-4be8-4679-b42d-acb4ed0f0baf] succeeded in 0.0009285450000788842s: 'Cleanup complete'
-[2026-11-23 15:39:21,354: INFO/MainProcess] Task app.tasks.orders.generate_order_pdf[62c429c5-0fae-455b-a608-5dbbc21287c3] received
-[2026-11-23 15:39:23,357: INFO/MainProcess] Task app.tasks.orders.generate_order_pdf[62c429c5-0fae-455b-a608-5dbbc21287c3] succeeded in 2.0029973179998706s: 'PDF generated for order 14'
-[2026-11-23 15:39:23,360: INFO/MainProcess] Task app.tasks.orders.send_order_email[ced327ec-a0e8-492d-aa84-6d9f3ec1550b] received
-[2026-11-23 15:39:24,362: INFO/MainProcess] Task app.tasks.orders.send_order_email[ced327ec-a0e8-492d-aa84-6d9f3ec1550b] succeeded in 1.0019640529999378s: 'Email sent to observability-test-20261123153920-15379@gmail.com for order 14'
-[2026-11-23 15:40:04,766: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[b174de80-4bd0-425b-b684-777b5ff3e4dc] received
-[2026-11-23 15:40:04,767: WARNING/MainProcess] [Beat] Cleaning up old task logs...
-[2026-11-23 15:40:04,767: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[b174de80-4bd0-425b-b684-777b5ff3e4dc] succeeded in 0.0006150959998194594s: 'Cleanup complete'
-[2026-11-23 15:41:04,766: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[b873b675-7b6b-4434-923f-6a46393842c8] received
-[2026-11-23 15:41:04,767: WARNING/MainProcess] [Beat] Cleaning up old task logs...
-[2026-11-23 15:41:04,767: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[b873b675-7b6b-4434-923f-6a46393842c8] succeeded in 0.0008269509999081492s: 'Cleanup complete'
-[2026-11-23 15:42:04,766: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[8980b94e-d7bd-493c-b8a6-1f0faf308252] received
-[2026-11-23 15:42:04,767: WARNING/MainProcess] [Beat] Cleaning up old task logs...
-[2026-11-23 15:42:04,768: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[8980b94e-d7bd-493c-b8a6-1f0faf308252] succeeded in 0.0008523100000275008s: 'Cleanup complete'
-[2026-11-23 15:42:33,841: INFO/MainProcess] Task app.tasks.orders.generate_order_pdf[623eb99e-4c03-405c-8ceb-ffa6bc73da03] received
-[2026-11-23 15:42:35,843: INFO/MainProcess] Task app.tasks.orders.generate_order_pdf[623eb99e-4c03-405c-8ceb-ffa6bc73da03] succeeded in 2.0024258139997073s: 'PDF generated for order 15'
-[2026-11-23 15:42:35,846: INFO/MainProcess] Task app.tasks.orders.send_order_email[13303ca7-2214-4e21-8b67-1669dadfc41b] received
-[2026-11-23 15:42:36,851: INFO/MainProcess] Task app.tasks.orders.send_order_email[13303ca7-2214-4e21-8b67-1669dadfc41b] retry: Retry in 0s: Exception('Email service unavailable')
-[2026-11-23 15:42:36,853: INFO/MainProcess] Task app.tasks.orders.send_order_sms[8ebac113-6160-4154-9e14-d73c7079cae4] received
-[2026-11-23 15:42:37,855: INFO/MainProcess] Task app.tasks.orders.send_order_sms[8ebac113-6160-4154-9e14-d73c7079cae4] succeeded in 1.001229980000062s: 'SMS sent to 88888888888 for order 15'
-[2026-11-23 15:42:37,858: INFO/MainProcess] Task app.tasks.orders.send_order_email[13303ca7-2214-4e21-8b67-1669dadfc41b] received
-[2026-11-23 15:42:38,861: INFO/MainProcess] Task app.tasks.orders.send_order_email[13303ca7-2214-4e21-8b67-1669dadfc41b] retry: Retry in 2s: Exception('Email service unavailable')
-[2026-11-23 15:42:38,863: INFO/MainProcess] Task app.tasks.orders.send_order_email[13303ca7-2214-4e21-8b67-1669dadfc41b] received
-[2026-11-23 15:42:41,863: INFO/MainProcess] Task app.tasks.orders.send_order_email[13303ca7-2214-4e21-8b67-1669dadfc41b] retry: Retry in 0s: Exception('Email service unavailable')
-[2026-11-23 15:42:41,866: INFO/MainProcess] Task app.tasks.orders.send_order_email[13303ca7-2214-4e21-8b67-1669dadfc41b] received
-[2026-11-23 15:42:42,870: WARNING/MainProcess] 
-[DLQ] Задача app.tasks.orders.send_order_email[13303ca7-2214-4e21-8b67-1669dadfc41b] упала и отправлена в DLQ.
-[2026-11-23 15:42:42,870: ERROR/MainProcess] Task app.tasks.orders.send_order_email[13303ca7-2214-4e21-8b67-1669dadfc41b] raised unexpected: Exception('Email service unavailable')
-Traceback (most recent call last):
-  File "/home/zahar/sirius/git/sirius_eda/.venv/lib/python3.14/site-packages/celery/app/trace.py", line 585, in trace_task
-    R = retval = fun(*args, **kwargs)
-                 ~~~^^^^^^^^^^^^^^^^^
-  File "/home/zahar/sirius/git/sirius_eda/.venv/lib/python3.14/site-packages/celery/app/trace.py", line 858, in __protected_call__
-    return self.run(*args, **kwargs)
-           ~~~~~~~~^^^^^^^^^^^^^^^^^
-  File "/home/zahar/sirius/git/sirius_eda/.venv/lib/python3.14/site-packages/celery/app/autoretry.py", line 60, in run
-    ret = task.retry(exc=exc, **retry_kwargs)
-  File "/home/zahar/sirius/git/sirius_eda/.venv/lib/python3.14/site-packages/celery/app/task.py", line 769, in retry
-    raise_with_context(exc)
-    ~~~~~~~~~~~~~~~~~~^^^^^
-  File "/home/zahar/sirius/git/sirius_eda/.venv/lib/python3.14/site-packages/celery/app/autoretry.py", line 38, in run
-    return task._orig_run(*args, **kwargs)
-           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
-  File "/home/zahar/sirius/git/sirius_eda/app/tasks/orders.py", line 43, in send_order_email
-    raise Exception("Email service unavailable")
-Exception: Email service unavailable
-[2026-11-23 15:43:04,767: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[e5c1cdd1-b259-4775-a49c-5fb4fa9cd75c] received
-[2026-11-23 15:43:04,767: WARNING/MainProcess] [Beat] Cleaning up old task logs...
-[2026-11-23 15:43:04,768: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[e5c1cdd1-b259-4775-a49c-5fb4fa9cd75c] succeeded in 0.0009074449999388889s: 'Cleanup complete'
-[2026-11-23 15:44:04,767: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[66947430-167f-471b-a1cd-48568c97622d] received
-[2026-11-23 15:44:04,767: WARNING/MainProcess] [Beat] Cleaning up old task logs...
-[2026-11-23 15:44:04,768: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[66947430-167f-471b-a1cd-48568c97622d] succeeded in 0.000781280999945011s: 'Cleanup complete'
-[2026-11-23 15:45:04,767: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[f872a55e-5778-4b89-8f99-d10c1d5c5496] received
-[2026-11-23 15:45:04,767: WARNING/MainProcess] [Beat] Cleaning up old task logs...
-[2026-11-23 15:45:04,767: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[f872a55e-5778-4b89-8f99-d10c1d5c5496] succeeded in 0.0007204039998214284s: 'Cleanup complete'
-[2026-11-23 15:46:04,766: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[40085a40-4ca8-474e-a473-308c5cf55762] received
-[2026-11-23 15:46:04,766: WARNING/MainProcess] [Beat] Cleaning up old task logs...
-[2026-11-23 15:46:04,767: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[40085a40-4ca8-474e-a473-308c5cf55762] succeeded in 0.0006901560000187601s: 'Cleanup complete'
-[2026-11-23 15:46:54,894: INFO/MainProcess] Task app.tasks.orders.generate_order_pdf[0f61cb08-ff69-405e-af44-80d2aef6b90c] received
-[2026-11-23 15:46:56,897: INFO/MainProcess] Task app.tasks.orders.generate_order_pdf[0f61cb08-ff69-405e-af44-80d2aef6b90c] succeeded in 2.002938765000181s: 'PDF generated for order 16'
-[2026-11-23 15:46:56,900: INFO/MainProcess] Task app.tasks.orders.send_order_email[0d0b7453-a828-4c05-8953-37835c3ee7a0] received
-[2026-11-23 15:46:57,901: INFO/MainProcess] Task app.tasks.orders.send_order_email[0d0b7453-a828-4c05-8953-37835c3ee7a0] succeeded in 1.000882520000232s: 'Email sent to observability-test-20261123154654-10513@gmail.com for order 16'
-[2026-11-23 15:47:04,767: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[88149987-0d12-48f6-9c96-8f51659710d6] received
-[2026-11-23 15:47:04,767: WARNING/MainProcess] [Beat] Cleaning up old task logs...
-[2026-11-23 15:47:04,768: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[88149987-0d12-48f6-9c96-8f51659710d6] succeeded in 0.0010910349997175217s: 'Cleanup complete'
-[2026-11-23 15:47:25,150: INFO/MainProcess] Task app.tasks.orders.generate_order_pdf[5e4907ef-f0d3-4c41-b383-84da351e1a86] received
-[2026-11-23 15:47:27,152: INFO/MainProcess] Task app.tasks.orders.generate_order_pdf[5e4907ef-f0d3-4c41-b383-84da351e1a86] succeeded in 2.001620183000341s: 'PDF generated for order 17'
-[2026-11-23 15:47:27,154: INFO/MainProcess] Task app.tasks.orders.send_order_email[fce6c908-7d86-4700-845b-fb5f0b9b5f76] received
-[2026-11-23 15:47:28,155: INFO/MainProcess] Task app.tasks.orders.send_order_email[fce6c908-7d86-4700-845b-fb5f0b9b5f76] succeeded in 1.0011445130003267s: 'Email sent to observability-test-20261123154724-1827@gmail.com for order 17'
-[2026-11-23 15:48:04,766: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[98f33471-dfd4-4f09-8724-b3bc54606b34] received
-[2026-11-23 15:48:04,767: WARNING/MainProcess] [Beat] Cleaning up old task logs...
-[2026-11-23 15:48:04,768: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[98f33471-dfd4-4f09-8724-b3bc54606b34] succeeded in 0.0009793640001589665s: 'Cleanup complete'
-[2026-11-23 15:49:04,766: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[ba323147-79a6-4a05-94ca-c90ce7fa17bc] received
-[2026-11-23 15:49:04,767: WARNING/MainProcess] [Beat] Cleaning up old task logs...
-[2026-11-23 15:49:04,767: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[ba323147-79a6-4a05-94ca-c90ce7fa17bc] succeeded in 0.000833245000194438s: 'Cleanup complete'
-[2026-11-23 15:50:04,767: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[69fdcdc5-6b2f-46c7-8575-47e5c84c8d9d] received
-[2026-11-23 15:50:04,767: WARNING/MainProcess] [Beat] Cleaning up old task logs...
-[2026-11-23 15:50:04,768: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[69fdcdc5-6b2f-46c7-8575-47e5c84c8d9d] succeeded in 0.0009333160001006036s: 'Cleanup complete'
-[2026-11-23 15:51:04,766: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[ab885e84-c2c6-4951-97cd-1f0570bedf06] received
-[2026-11-23 15:51:04,767: WARNING/MainProcess] [Beat] Cleaning up old task logs...
-[2026-11-23 15:51:04,767: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[ab885e84-c2c6-4951-97cd-1f0570bedf06] succeeded in 0.0005892680001124972s: 'Cleanup complete'
-[2026-11-23 15:52:04,766: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[703bc8e8-f0bf-48d1-9025-110ae31799dc] received
-[2026-11-23 15:52:04,767: WARNING/MainProcess] [Beat] Cleaning up old task logs...
-[2026-11-23 15:52:04,767: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[703bc8e8-f0bf-48d1-9025-110ae31799dc] succeeded in 0.0006999040001574031s: 'Cleanup complete'
-[2026-11-23 15:53:04,766: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[889657d6-cd58-4749-b7a7-efce5f2f0acf] received
-[2026-11-23 15:53:04,767: WARNING/MainProcess] [Beat] Cleaning up old task logs...
-[2026-11-23 15:53:04,767: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[889657d6-cd58-4749-b7a7-efce5f2f0acf] succeeded in 0.0007100630000422825s: 'Cleanup complete'
-[2026-11-23 15:54:04,766: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[fdb90ad0-2b7d-456d-ac40-cca7f7dfa375] received
-[2026-11-23 15:54:04,767: WARNING/MainProcess] [Beat] Cleaning up old task logs...
-[2026-11-23 15:54:04,767: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[fdb90ad0-2b7d-456d-ac40-cca7f7dfa375] succeeded in 0.0007343299998865405s: 'Cleanup complete'
+[2026-11-25 10:03:23,791: INFO/MainProcess] Connected to redis://localhost:6379//
+[2026-11-25 10:03:23,794: INFO/MainProcess] mingle: searching for neighbors
+[2026-11-25 10:03:24,801: INFO/MainProcess] mingle: all alone
+[2026-11-25 10:03:24,811: INFO/MainProcess] celery@zahar-GIGABYTE-GAMING-A16-5VH ready.
+[2026-11-25 10:03:28,664: INFO/MainProcess] Events of group {task} enabled by remote.
+[2026-11-25 10:04:23,714: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[8107a68a-2278-47cc-b3b5-145a4eda32e6] received
+[2026-11-25 10:04:23,714: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 10:04:23,716: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[8107a68a-2278-47cc-b3b5-145a4eda32e6] succeeded in 0.0020427810000001045s: 'Cleanup complete'
+[2026-11-25 10:05:23,707: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[06497a4b-8b13-4f64-a0e6-4a2467e9833d] received
+[2026-11-25 10:05:23,707: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 10:05:23,707: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[06497a4b-8b13-4f64-a0e6-4a2467e9833d] succeeded in 0.0006088100001306884s: 'Cleanup complete'
+[2026-11-25 10:06:23,706: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[00e5e344-b70b-4fe4-b992-54335cc8cba4] received
+[2026-11-25 10:06:23,707: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 10:06:23,707: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[00e5e344-b70b-4fe4-b992-54335cc8cba4] succeeded in 0.0007143299999370356s: 'Cleanup complete'
+[2026-11-25 10:07:23,707: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[fbf255d6-7279-44fb-b74f-8ff8615e3e5c] received
+[2026-11-25 10:07:23,708: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 10:07:23,708: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[fbf255d6-7279-44fb-b74f-8ff8615e3e5c] succeeded in 0.0007634610001332476s: 'Cleanup complete'
+[2026-11-25 10:08:23,707: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[2a7bd6be-5981-41e3-9d9b-d0a28ac8e801] received
+[2026-11-25 10:08:23,707: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 10:08:23,708: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[2a7bd6be-5981-41e3-9d9b-d0a28ac8e801] succeeded in 0.0007112710000001243s: 'Cleanup complete'
+[2026-11-25 10:09:23,707: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[38080a1c-76c7-430a-b62b-05052b6f881a] received
+[2026-11-25 10:09:23,707: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 10:09:23,708: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[38080a1c-76c7-430a-b62b-05052b6f881a] succeeded in 0.0007242990000122518s: 'Cleanup complete'
+[2026-11-25 10:10:23,707: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[1d953316-24ff-49b0-b775-8a2c0c633179] received
+[2026-11-25 10:10:23,707: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 10:10:23,707: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[1d953316-24ff-49b0-b775-8a2c0c633179] succeeded in 0.0006239009999262635s: 'Cleanup complete'
+[2026-11-25 10:11:23,707: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[88b2fe2a-e81a-4723-850f-e88b37d7b6ff] received
+[2026-11-25 10:11:23,707: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 10:11:23,708: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[88b2fe2a-e81a-4723-850f-e88b37d7b6ff] succeeded in 0.0008533660000011878s: 'Cleanup complete'
+[2026-11-25 10:11:49,776: INFO/MainProcess] Task app.tasks.orders.generate_order_pdf[eb2cadb9-4c7d-4f71-9236-ea737740ce96] received
+[2026-11-25 10:11:51,780: INFO/MainProcess] Task app.tasks.orders.generate_order_pdf[eb2cadb9-4c7d-4f71-9236-ea737740ce96] succeeded in 2.003469172999985s: 'PDF generated for order 1'
+[2026-11-25 10:11:51,782: INFO/MainProcess] Task app.tasks.orders.send_order_email[8b0ec3c7-326e-44b2-a5d4-cc9f8e62da08] received
+[2026-11-25 10:11:52,784: INFO/MainProcess] Task app.tasks.orders.send_order_email[8b0ec3c7-326e-44b2-a5d4-cc9f8e62da08] succeeded in 1.0011154940000324s: 'Email sent to s@sirius.ru for order 1'
+[2026-11-25 10:11:52,785: INFO/MainProcess] Task app.tasks.orders.generate_order_pdf[0edd268a-26b7-410c-b6d1-52aa92c74d5c] received
+[2026-11-25 10:11:52,786: INFO/MainProcess] Task app.tasks.orders.generate_order_pdf[0edd268a-26b7-410c-b6d1-52aa92c74d5c] succeeded in 0.0005894099999750324s: 'PDF already generated for order 1'
+[2026-11-25 10:11:52,787: INFO/MainProcess] Task app.tasks.orders.send_order_email[f56123ef-32ee-4b41-ad12-a09a7aa55544] received
+[2026-11-25 10:11:53,788: INFO/MainProcess] Task app.tasks.orders.send_order_email[f56123ef-32ee-4b41-ad12-a09a7aa55544] succeeded in 1.0012491510001382s: 'Email sent to a@a.com for order 1'
+[2026-11-25 10:11:58,219: INFO/MainProcess] Task app.tasks.orders.generate_order_pdf[512b2c60-0461-455e-ae76-a42b6da6874a] received
+[2026-11-25 10:11:58,220: INFO/MainProcess] Task app.tasks.orders.generate_order_pdf[512b2c60-0461-455e-ae76-a42b6da6874a] succeeded in 0.0008456809998733661s: 'PDF already generated for order 1'
+[2026-11-25 10:11:58,222: INFO/MainProcess] Task app.tasks.orders.send_order_email[a014c511-9eb5-4e42-a496-e0ac554f6f60] received
+[2026-11-25 10:11:59,223: INFO/MainProcess] Task app.tasks.orders.send_order_email[a014c511-9eb5-4e42-a496-e0ac554f6f60] succeeded in 1.0012728670001252s: 'Email sent to student@sirius.ru for order 1'
+[2026-11-25 10:12:23,707: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[497fa5eb-1e56-4b96-8261-80e4c92fee9e] received
+[2026-11-25 10:12:23,707: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 10:12:23,708: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[497fa5eb-1e56-4b96-8261-80e4c92fee9e] succeeded in 0.0007292279999546736s: 'Cleanup complete'
+[2026-11-25 10:13:23,707: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[8d60cf8d-6b05-4e8b-bc71-6d651065d145] received
+[2026-11-25 10:13:23,707: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 10:13:23,707: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[8d60cf8d-6b05-4e8b-bc71-6d651065d145] succeeded in 0.0005076029999599996s: 'Cleanup complete'
+[2026-11-25 10:14:23,707: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[16b3d910-b310-44b5-9cf2-2bc3f7f6cc65] received
+[2026-11-25 10:14:23,707: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 10:14:23,708: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[16b3d910-b310-44b5-9cf2-2bc3f7f6cc65] succeeded in 0.0008052059999954508s: 'Cleanup complete'
+[2026-11-25 10:15:23,707: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[d66e7a08-07da-401e-9de0-f6f045ce2b82] received
+[2026-11-25 10:15:23,707: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 10:15:23,708: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[d66e7a08-07da-401e-9de0-f6f045ce2b82] succeeded in 0.0009587929998815525s: 'Cleanup complete'
+[2026-11-25 10:16:23,707: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[81172fce-f555-4f76-8dea-7ac53152b4ab] received
+[2026-11-25 10:16:23,707: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 10:16:23,708: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[81172fce-f555-4f76-8dea-7ac53152b4ab] succeeded in 0.0008502230000431155s: 'Cleanup complete'
+[2026-11-25 10:17:23,707: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[8ecdfb4e-3b69-4a42-bd17-c7c3f6986e24] received
+[2026-11-25 10:17:23,707: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 10:17:23,708: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[8ecdfb4e-3b69-4a42-bd17-c7c3f6986e24] succeeded in 0.0006937059999927442s: 'Cleanup complete'
+[2026-11-25 10:18:23,707: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[76fcbb18-cd18-4982-95ae-be9d9afdf7f9] received
+[2026-11-25 10:18:23,707: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 10:18:23,708: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[76fcbb18-cd18-4982-95ae-be9d9afdf7f9] succeeded in 0.0006511070000669861s: 'Cleanup complete'
+[2026-11-25 10:19:23,707: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[a5bb7d11-f99d-4f80-b867-c918c755637f] received
+[2026-11-25 10:19:23,707: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 10:19:23,708: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[a5bb7d11-f99d-4f80-b867-c918c755637f] succeeded in 0.0008984219998637855s: 'Cleanup complete'
+[2026-11-25 10:30:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[94a8bc83-d66e-4697-ab62-381227edc02a] received
+[2026-11-25 10:30:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 10:30:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[94a8bc83-d66e-4697-ab62-381227edc02a] succeeded in 0.0007991369998308073s: 'Cleanup complete'
+[2026-11-25 10:31:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[851a1b8d-e689-472b-a53a-0bf746a7ed77] received
+[2026-11-25 10:31:35,020: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 10:31:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[851a1b8d-e689-472b-a53a-0bf746a7ed77] succeeded in 0.0007125219999579713s: 'Cleanup complete'
+[2026-11-25 10:32:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[65b5647a-2c59-42a1-9312-da6c4793059e] received
+[2026-11-25 10:32:35,020: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 10:32:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[65b5647a-2c59-42a1-9312-da6c4793059e] succeeded in 0.0006152150003799761s: 'Cleanup complete'
+[2026-11-25 10:33:02,776: INFO/MainProcess] Task app.tasks.orders.generate_order_pdf[ed612d94-afef-4a57-bcec-9d60d0995614] received
+[2026-11-25 10:33:02,777: INFO/MainProcess] Task app.tasks.orders.generate_order_pdf[ed612d94-afef-4a57-bcec-9d60d0995614] succeeded in 0.0006687380000585108s: 'PDF already generated for order 1'
+[2026-11-25 10:33:02,778: INFO/MainProcess] Task app.tasks.orders.send_order_email[8f4dcc5f-789b-42a2-a114-8ebb628e994d] received
+[2026-11-25 10:33:03,779: INFO/MainProcess] Task app.tasks.orders.send_order_email[8f4dcc5f-789b-42a2-a114-8ebb628e994d] succeeded in 1.0010362610000811s: 'Email sent to s@sirius.ru for order 1'
+[2026-11-25 10:33:03,915: INFO/MainProcess] Task app.tasks.orders.generate_order_pdf[aa3a13c6-0691-431f-adc2-122f82cc1a13] received
+[2026-11-25 10:33:03,915: INFO/MainProcess] Task app.tasks.orders.generate_order_pdf[aa3a13c6-0691-431f-adc2-122f82cc1a13] succeeded in 0.0005645689998345915s: 'PDF already generated for order 1'
+[2026-11-25 10:33:03,916: INFO/MainProcess] Task app.tasks.orders.send_order_email[716dfb1c-4779-47d8-8a40-2128b785f47d] received
+[2026-11-25 10:33:04,917: INFO/MainProcess] Task app.tasks.orders.send_order_email[716dfb1c-4779-47d8-8a40-2128b785f47d] succeeded in 1.0008124739997584s: 'Email sent to a@a.com for order 1'
+[2026-11-25 10:33:11,228: INFO/MainProcess] Task app.tasks.orders.generate_order_pdf[fc03e6be-ead5-4e17-b937-d17ed55e3f90] received
+[2026-11-25 10:33:11,229: INFO/MainProcess] Task app.tasks.orders.generate_order_pdf[fc03e6be-ead5-4e17-b937-d17ed55e3f90] succeeded in 0.0007162090000747412s: 'PDF already generated for order 1'
+[2026-11-25 10:33:11,230: INFO/MainProcess] Task app.tasks.orders.send_order_email[22c379d4-e67c-4a62-997f-ecff01f8ed7f] received
+[2026-11-25 10:33:12,231: INFO/MainProcess] Task app.tasks.orders.send_order_email[22c379d4-e67c-4a62-997f-ecff01f8ed7f] succeeded in 1.0011320939997859s: 'Email sent to student@sirius.ru for order 1'
+[2026-11-25 10:33:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[127feb1a-53fd-4728-ba03-f9b0dcb639f6] received
+[2026-11-25 10:33:35,020: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 10:33:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[127feb1a-53fd-4728-ba03-f9b0dcb639f6] succeeded in 0.0005829340002492245s: 'Cleanup complete'
+[2026-11-25 10:34:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[dae8533e-407b-4b67-884c-58c591585ff2] received
+[2026-11-25 10:34:35,020: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 10:34:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[dae8533e-407b-4b67-884c-58c591585ff2] succeeded in 0.0005319369997778267s: 'Cleanup complete'
+[2026-11-25 10:35:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[30cf5dfe-67e3-4829-8dd7-d3603c9d3c0f] received
+[2026-11-25 10:35:35,020: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 10:35:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[30cf5dfe-67e3-4829-8dd7-d3603c9d3c0f] succeeded in 0.0006656020000264107s: 'Cleanup complete'
+[2026-11-25 10:36:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[0d29d22b-c071-4119-86c9-94746569f6e6] received
+[2026-11-25 10:36:35,020: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 10:36:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[0d29d22b-c071-4119-86c9-94746569f6e6] succeeded in 0.0005703199999516073s: 'Cleanup complete'
+[2026-11-25 10:37:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[e46aab40-5db9-43e1-a700-63379210b3db] received
+[2026-11-25 10:37:35,020: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 10:37:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[e46aab40-5db9-43e1-a700-63379210b3db] succeeded in 0.0006875340000078722s: 'Cleanup complete'
+[2026-11-25 10:38:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[27a5e306-cfa8-47cc-aa25-5a3d50d1fd7d] received
+[2026-11-25 10:38:35,020: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 10:38:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[27a5e306-cfa8-47cc-aa25-5a3d50d1fd7d] succeeded in 0.0005544999999074207s: 'Cleanup complete'
+[2026-11-25 10:39:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[78693847-7b44-41c1-93b1-9353cc6a11d3] received
+[2026-11-25 10:39:35,020: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 10:39:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[78693847-7b44-41c1-93b1-9353cc6a11d3] succeeded in 0.0006831959999544779s: 'Cleanup complete'
+[2026-11-25 10:40:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[f3053792-3286-42ee-8a8b-e2ebee4256d8] received
+[2026-11-25 10:40:35,020: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 10:40:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[f3053792-3286-42ee-8a8b-e2ebee4256d8] succeeded in 0.0005369460000110848s: 'Cleanup complete'
+[2026-11-25 10:41:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[e8bfa5a4-a467-49df-9f16-17475ddc4811] received
+[2026-11-25 10:41:35,020: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 10:41:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[e8bfa5a4-a467-49df-9f16-17475ddc4811] succeeded in 0.0008444939999208145s: 'Cleanup complete'
+[2026-11-25 10:42:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[d8ba1a01-afcb-4da2-9a69-a6ddf564d6f3] received
+[2026-11-25 10:42:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 10:42:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[d8ba1a01-afcb-4da2-9a69-a6ddf564d6f3] succeeded in 0.000982247000138159s: 'Cleanup complete'
+[2026-11-25 10:43:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[d3993d3a-3ab3-41c5-8358-e6459b83fbc4] received
+[2026-11-25 10:43:35,020: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 10:43:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[d3993d3a-3ab3-41c5-8358-e6459b83fbc4] succeeded in 0.0005779450002592057s: 'Cleanup complete'
+[2026-11-25 10:44:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[d3682b67-13fb-45af-8160-37d1e5333c13] received
+[2026-11-25 10:44:35,020: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 10:44:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[d3682b67-13fb-45af-8160-37d1e5333c13] succeeded in 0.0005981029999020393s: 'Cleanup complete'
+[2026-11-25 10:45:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[a7a0f131-790a-41e1-a095-5287b4d0c843] received
+[2026-11-25 10:45:35,020: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 10:45:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[a7a0f131-790a-41e1-a095-5287b4d0c843] succeeded in 0.0005205750003369758s: 'Cleanup complete'
+[2026-11-25 10:46:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[8da31915-8368-4419-8784-107aa57d22ac] received
+[2026-11-25 10:46:35,020: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 10:46:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[8da31915-8368-4419-8784-107aa57d22ac] succeeded in 0.0005301030000737228s: 'Cleanup complete'
+[2026-11-25 10:47:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[01d96329-2e5b-4583-8291-06e331c9aee0] received
+[2026-11-25 10:47:35,020: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 10:47:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[01d96329-2e5b-4583-8291-06e331c9aee0] succeeded in 0.0005966399999124405s: 'Cleanup complete'
+[2026-11-25 10:48:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[cc0b64e3-1c45-4436-8b39-5d3334594b0f] received
+[2026-11-25 10:48:35,020: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 10:48:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[cc0b64e3-1c45-4436-8b39-5d3334594b0f] succeeded in 0.0006643800002166245s: 'Cleanup complete'
+[2026-11-25 10:49:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[8bdc6a63-1056-42f8-a09c-c0d1a7fa7f2f] received
+[2026-11-25 10:49:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 10:49:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[8bdc6a63-1056-42f8-a09c-c0d1a7fa7f2f] succeeded in 0.0010244069999316707s: 'Cleanup complete'
+[2026-11-25 10:50:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[83054599-2213-42ae-ad2f-1a84368ef694] received
+[2026-11-25 10:50:35,020: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 10:50:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[83054599-2213-42ae-ad2f-1a84368ef694] succeeded in 0.0005238210001152765s: 'Cleanup complete'
+[2026-11-25 10:51:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[a539c505-3f1d-4820-8ef8-5b67d4fe203a] received
+[2026-11-25 10:51:35,020: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 10:51:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[a539c505-3f1d-4820-8ef8-5b67d4fe203a] succeeded in 0.000506226999732462s: 'Cleanup complete'
+[2026-11-25 10:52:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[4d20d3a5-31d1-46db-aacd-f14ebc7a25d6] received
+[2026-11-25 10:52:35,020: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 10:52:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[4d20d3a5-31d1-46db-aacd-f14ebc7a25d6] succeeded in 0.0006043849998604856s: 'Cleanup complete'
+[2026-11-25 10:53:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[89f8ab8c-c817-4f08-a1ca-7a3328bf30de] received
+[2026-11-25 10:53:35,020: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 10:53:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[89f8ab8c-c817-4f08-a1ca-7a3328bf30de] succeeded in 0.0005503209999915271s: 'Cleanup complete'
+[2026-11-25 10:54:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[37975276-4887-4cdc-9cb2-1ac309820779] received
+[2026-11-25 10:54:35,020: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 10:54:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[37975276-4887-4cdc-9cb2-1ac309820779] succeeded in 0.0007449639997503255s: 'Cleanup complete'
+[2026-11-25 10:55:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[699b3209-d875-493e-8e49-4a95eeece563] received
+[2026-11-25 10:55:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 10:55:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[699b3209-d875-493e-8e49-4a95eeece563] succeeded in 0.0007239029996526369s: 'Cleanup complete'
+[2026-11-25 10:56:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[f312d311-f8e1-45de-a6a1-db8070f159cd] received
+[2026-11-25 10:56:35,020: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 10:56:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[f312d311-f8e1-45de-a6a1-db8070f159cd] succeeded in 0.0005751790004069335s: 'Cleanup complete'
+[2026-11-25 10:57:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[9beb4162-fc63-4a37-be35-5abc3a1e6a7b] received
+[2026-11-25 10:57:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 10:57:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[9beb4162-fc63-4a37-be35-5abc3a1e6a7b] succeeded in 0.0005324479998307652s: 'Cleanup complete'
+[2026-11-25 10:58:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[398be762-d645-4f8a-a99f-34dfa22507e9] received
+[2026-11-25 10:58:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 10:58:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[398be762-d645-4f8a-a99f-34dfa22507e9] succeeded in 0.0007482589999199263s: 'Cleanup complete'
+[2026-11-25 10:59:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[9123ec77-7f55-4743-8360-75cc1228e599] received
+[2026-11-25 10:59:35,020: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 10:59:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[9123ec77-7f55-4743-8360-75cc1228e599] succeeded in 0.0005002060001970676s: 'Cleanup complete'
+[2026-11-25 11:00:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[f1b176e7-c8b3-4716-992b-4c5ee2e90e0f] received
+[2026-11-25 11:00:35,020: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:00:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[f1b176e7-c8b3-4716-992b-4c5ee2e90e0f] succeeded in 0.0005021490001126949s: 'Cleanup complete'
+[2026-11-25 11:01:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[5a1cb242-444d-48a1-b670-5d2eb05f7d58] received
+[2026-11-25 11:01:35,020: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:01:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[5a1cb242-444d-48a1-b670-5d2eb05f7d58] succeeded in 0.0005420649999905436s: 'Cleanup complete'
+[2026-11-25 11:02:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[b0f9d502-69b3-4733-8f2e-5a862fa8b1a6] received
+[2026-11-25 11:02:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:02:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[b0f9d502-69b3-4733-8f2e-5a862fa8b1a6] succeeded in 0.0008366790007130476s: 'Cleanup complete'
+[2026-11-25 11:03:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[edfdcd04-f47b-4d7a-b4e7-b02dfedac533] received
+[2026-11-25 11:03:35,020: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:03:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[edfdcd04-f47b-4d7a-b4e7-b02dfedac533] succeeded in 0.0009104089995162212s: 'Cleanup complete'
+[2026-11-25 11:04:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[af14f7bc-6480-493d-adcf-383dc48dd2d0] received
+[2026-11-25 11:04:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:04:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[af14f7bc-6480-493d-adcf-383dc48dd2d0] succeeded in 0.0005969310004729778s: 'Cleanup complete'
+[2026-11-25 11:05:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[3bd6fb30-5a39-4064-bddf-a1fab22bf952] received
+[2026-11-25 11:05:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:05:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[3bd6fb30-5a39-4064-bddf-a1fab22bf952] succeeded in 0.0007882959998823935s: 'Cleanup complete'
+[2026-11-25 11:06:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[0a120ede-fbdd-475b-aec2-3f16a1ea3609] received
+[2026-11-25 11:06:35,020: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:06:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[0a120ede-fbdd-475b-aec2-3f16a1ea3609] succeeded in 0.0005480070003613946s: 'Cleanup complete'
+[2026-11-25 11:07:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[e02dcd5b-e08d-4940-b535-1ab60514201a] received
+[2026-11-25 11:07:35,020: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:07:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[e02dcd5b-e08d-4940-b535-1ab60514201a] succeeded in 0.0006810100003349362s: 'Cleanup complete'
+[2026-11-25 11:08:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[c681609d-0e61-454e-96b1-3c2ce18639c3] received
+[2026-11-25 11:08:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:08:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[c681609d-0e61-454e-96b1-3c2ce18639c3] succeeded in 0.000579135999942082s: 'Cleanup complete'
+[2026-11-25 11:09:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[344a4664-0d6b-4e40-9edf-bc301fd89bbe] received
+[2026-11-25 11:09:35,020: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:09:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[344a4664-0d6b-4e40-9edf-bc301fd89bbe] succeeded in 0.0005166750006537768s: 'Cleanup complete'
+[2026-11-25 11:10:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[8871a450-5d79-41e2-b9cb-8caa0a197491] received
+[2026-11-25 11:10:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:10:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[8871a450-5d79-41e2-b9cb-8caa0a197491] succeeded in 0.0007242669998959173s: 'Cleanup complete'
+[2026-11-25 11:11:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[7aac438a-377b-4cbf-b4d9-5f3985b9636c] received
+[2026-11-25 11:11:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:11:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[7aac438a-377b-4cbf-b4d9-5f3985b9636c] succeeded in 0.000475679999908607s: 'Cleanup complete'
+[2026-11-25 11:12:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[88c4a718-30da-408f-98ed-25b62490f65c] received
+[2026-11-25 11:12:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:12:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[88c4a718-30da-408f-98ed-25b62490f65c] succeeded in 0.0006656710002062027s: 'Cleanup complete'
+[2026-11-25 11:13:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[8f4ba70a-9779-476f-a71f-0f80d4ec2c10] received
+[2026-11-25 11:13:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:13:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[8f4ba70a-9779-476f-a71f-0f80d4ec2c10] succeeded in 0.0006102659999669413s: 'Cleanup complete'
+[2026-11-25 11:14:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[b582244d-706b-4bc3-b74e-e327147d7600] received
+[2026-11-25 11:14:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:14:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[b582244d-706b-4bc3-b74e-e327147d7600] succeeded in 0.0007415469999614288s: 'Cleanup complete'
+[2026-11-25 11:15:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[11b4694e-cce4-4498-b84c-f890db9eb036] received
+[2026-11-25 11:15:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:15:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[11b4694e-cce4-4498-b84c-f890db9eb036] succeeded in 0.0005073949996585725s: 'Cleanup complete'
+[2026-11-25 11:16:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[838e058d-8a2c-42b5-a5bd-a0339fe9d19e] received
+[2026-11-25 11:16:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:16:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[838e058d-8a2c-42b5-a5bd-a0339fe9d19e] succeeded in 0.0005703990000256454s: 'Cleanup complete'
+[2026-11-25 11:17:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[c92f376e-0508-4bde-8d35-05b9c54511d2] received
+[2026-11-25 11:17:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:17:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[c92f376e-0508-4bde-8d35-05b9c54511d2] succeeded in 0.0009620470000299974s: 'Cleanup complete'
+[2026-11-25 11:18:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[1289858d-4d18-48e8-892f-3ae554459745] received
+[2026-11-25 11:18:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:18:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[1289858d-4d18-48e8-892f-3ae554459745] succeeded in 0.0007200770005511004s: 'Cleanup complete'
+[2026-11-25 11:19:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[52ea75a7-ff97-4023-ae3c-536298d30377] received
+[2026-11-25 11:19:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:19:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[52ea75a7-ff97-4023-ae3c-536298d30377] succeeded in 0.0006084560000090278s: 'Cleanup complete'
+[2026-11-25 11:20:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[7c3f5d70-d817-4676-b78c-28ced18aa4c1] received
+[2026-11-25 11:20:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:20:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[7c3f5d70-d817-4676-b78c-28ced18aa4c1] succeeded in 0.0005730780003432301s: 'Cleanup complete'
+[2026-11-25 11:21:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[58f96a06-0f09-47bb-8675-eacc552c8d3a] received
+[2026-11-25 11:21:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:21:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[58f96a06-0f09-47bb-8675-eacc552c8d3a] succeeded in 0.0006413170003725099s: 'Cleanup complete'
+[2026-11-25 11:22:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[f33fca9f-59f4-4efb-863c-0c35c4a6ab45] received
+[2026-11-25 11:22:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:22:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[f33fca9f-59f4-4efb-863c-0c35c4a6ab45] succeeded in 0.000601116000325419s: 'Cleanup complete'
+[2026-11-25 11:23:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[eb927767-8eb9-493b-a7fe-1e7f365c92c2] received
+[2026-11-25 11:23:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:23:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[eb927767-8eb9-493b-a7fe-1e7f365c92c2] succeeded in 0.0006563039996763109s: 'Cleanup complete'
+[2026-11-25 11:24:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[e7a72bc3-4282-40a6-be2f-07ddfe2c5e51] received
+[2026-11-25 11:24:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:24:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[e7a72bc3-4282-40a6-be2f-07ddfe2c5e51] succeeded in 0.0006710719999318826s: 'Cleanup complete'
+[2026-11-25 11:25:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[da28e2df-ce29-4b2a-afe8-36170768721b] received
+[2026-11-25 11:25:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:25:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[da28e2df-ce29-4b2a-afe8-36170768721b] succeeded in 0.0005009390006307513s: 'Cleanup complete'
+[2026-11-25 11:26:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[e4726c4a-db76-4e5a-a06c-85e525c54e74] received
+[2026-11-25 11:26:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:26:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[e4726c4a-db76-4e5a-a06c-85e525c54e74] succeeded in 0.0006860809999125195s: 'Cleanup complete'
+[2026-11-25 11:27:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[35ee9531-19d9-46d3-a24e-4c23efa614a7] received
+[2026-11-25 11:27:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:27:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[35ee9531-19d9-46d3-a24e-4c23efa614a7] succeeded in 0.0005083409996586852s: 'Cleanup complete'
+[2026-11-25 11:28:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[2e6768ea-106c-4e5c-a7e7-5dddc3fd1ea8] received
+[2026-11-25 11:28:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:28:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[2e6768ea-106c-4e5c-a7e7-5dddc3fd1ea8] succeeded in 0.0006092900002840906s: 'Cleanup complete'
+[2026-11-25 11:29:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[8e91fb31-6095-4afa-9762-7935fc770d5d] received
+[2026-11-25 11:29:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:29:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[8e91fb31-6095-4afa-9762-7935fc770d5d] succeeded in 0.0005910259997108369s: 'Cleanup complete'
+[2026-11-25 11:30:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[c96d6fab-08ef-48be-beaf-e6b290452bed] received
+[2026-11-25 11:30:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:30:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[c96d6fab-08ef-48be-beaf-e6b290452bed] succeeded in 0.000504294000165828s: 'Cleanup complete'
+[2026-11-25 11:31:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[4ec3ec8b-5b36-4615-bc52-10628c093a7e] received
+[2026-11-25 11:31:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:31:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[4ec3ec8b-5b36-4615-bc52-10628c093a7e] succeeded in 0.0005124389999764389s: 'Cleanup complete'
+[2026-11-25 11:32:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[81c4c0cb-986b-4d3f-b31b-946916259906] received
+[2026-11-25 11:32:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:32:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[81c4c0cb-986b-4d3f-b31b-946916259906] succeeded in 0.0006072300002415432s: 'Cleanup complete'
+[2026-11-25 11:33:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[d54f7f85-920a-4b9f-9494-1c3c3712cb03] received
+[2026-11-25 11:33:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:33:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[d54f7f85-920a-4b9f-9494-1c3c3712cb03] succeeded in 0.0007103809994077892s: 'Cleanup complete'
+[2026-11-25 11:34:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[b142896a-4dff-4b26-bda7-753591223bb3] received
+[2026-11-25 11:34:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:34:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[b142896a-4dff-4b26-bda7-753591223bb3] succeeded in 0.0005518709995158133s: 'Cleanup complete'
+[2026-11-25 11:35:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[f13a0965-1237-4c5a-a624-6b79fcf8ad1e] received
+[2026-11-25 11:35:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:35:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[f13a0965-1237-4c5a-a624-6b79fcf8ad1e] succeeded in 0.0005871670000487939s: 'Cleanup complete'
+[2026-11-25 11:36:35,020: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[e0044e19-5800-4c44-9ed0-fe96069688ad] received
+[2026-11-25 11:36:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:36:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[e0044e19-5800-4c44-9ed0-fe96069688ad] succeeded in 0.0005151310006112908s: 'Cleanup complete'
+[2026-11-25 11:37:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[5aa40ba8-2e46-4223-b44b-01130efff59b] received
+[2026-11-25 11:37:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:37:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[5aa40ba8-2e46-4223-b44b-01130efff59b] succeeded in 0.0007123639998098952s: 'Cleanup complete'
+[2026-11-25 11:38:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[1675c761-cf9f-4b9b-8915-82818ccddb39] received
+[2026-11-25 11:38:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:38:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[1675c761-cf9f-4b9b-8915-82818ccddb39] succeeded in 0.0008545939999748953s: 'Cleanup complete'
+[2026-11-25 11:39:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[de6b5bfa-323e-4922-bb36-88f91f62b01f] received
+[2026-11-25 11:39:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:39:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[de6b5bfa-323e-4922-bb36-88f91f62b01f] succeeded in 0.000564283000130672s: 'Cleanup complete'
+[2026-11-25 11:40:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[aa921360-ecca-46a9-bd61-f3fc73462402] received
+[2026-11-25 11:40:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:40:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[aa921360-ecca-46a9-bd61-f3fc73462402] succeeded in 0.0005256599997665035s: 'Cleanup complete'
+[2026-11-25 11:41:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[7e0e68b3-e925-45d8-8454-bb997d329427] received
+[2026-11-25 11:41:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:41:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[7e0e68b3-e925-45d8-8454-bb997d329427] succeeded in 0.0007127749995561317s: 'Cleanup complete'
+[2026-11-25 11:42:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[c9e0e905-79b5-4220-8d74-659a014fa5b8] received
+[2026-11-25 11:42:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:42:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[c9e0e905-79b5-4220-8d74-659a014fa5b8] succeeded in 0.0006110120002631447s: 'Cleanup complete'
+[2026-11-25 11:43:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[3ee8b73b-1c5e-4085-bf9b-f30de7713edf] received
+[2026-11-25 11:43:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:43:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[3ee8b73b-1c5e-4085-bf9b-f30de7713edf] succeeded in 0.0006182259994602646s: 'Cleanup complete'
+[2026-11-25 11:44:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[aee821e4-1015-4063-b3be-244b92589295] received
+[2026-11-25 11:44:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:44:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[aee821e4-1015-4063-b3be-244b92589295] succeeded in 0.000548289999642293s: 'Cleanup complete'
+[2026-11-25 11:45:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[a2cc9734-cfb1-4b2d-a46d-18016ab73ff7] received
+[2026-11-25 11:45:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:45:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[a2cc9734-cfb1-4b2d-a46d-18016ab73ff7] succeeded in 0.0006777360003979993s: 'Cleanup complete'
+[2026-11-25 11:46:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[59f0aafa-7004-4cee-a1c8-94cb01be04e3] received
+[2026-11-25 11:46:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:46:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[59f0aafa-7004-4cee-a1c8-94cb01be04e3] succeeded in 0.0007318680000025779s: 'Cleanup complete'
+[2026-11-25 11:47:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[7bc4bbdd-7989-473d-8783-15475b42979d] received
+[2026-11-25 11:47:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:47:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[7bc4bbdd-7989-473d-8783-15475b42979d] succeeded in 0.0007442719997925451s: 'Cleanup complete'
+[2026-11-25 11:48:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[ac6b1975-355f-4dc5-89d6-9b15b969e08c] received
+[2026-11-25 11:48:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:48:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[ac6b1975-355f-4dc5-89d6-9b15b969e08c] succeeded in 0.0006347349999487051s: 'Cleanup complete'
+[2026-11-25 11:49:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[a5759569-41e4-4f9a-98eb-23230e433494] received
+[2026-11-25 11:49:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:49:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[a5759569-41e4-4f9a-98eb-23230e433494] succeeded in 0.0008041399996727705s: 'Cleanup complete'
+[2026-11-25 11:50:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[c4221d1f-f277-4885-babb-5b57c8859af4] received
+[2026-11-25 11:50:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:50:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[c4221d1f-f277-4885-babb-5b57c8859af4] succeeded in 0.0006198080000103801s: 'Cleanup complete'
+[2026-11-25 11:51:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[f27bc318-a4b9-4d53-83bb-847d20acebe4] received
+[2026-11-25 11:51:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:51:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[f27bc318-a4b9-4d53-83bb-847d20acebe4] succeeded in 0.0005870000004506437s: 'Cleanup complete'
+[2026-11-25 11:52:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[29db70ce-23cd-46df-b0b9-09ae099967e2] received
+[2026-11-25 11:52:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:52:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[29db70ce-23cd-46df-b0b9-09ae099967e2] succeeded in 0.0007561700003861915s: 'Cleanup complete'
+[2026-11-25 11:53:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[603d4d63-e350-4e70-a090-f079125ab037] received
+[2026-11-25 11:53:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:53:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[603d4d63-e350-4e70-a090-f079125ab037] succeeded in 0.0007598709999001585s: 'Cleanup complete'
+[2026-11-25 11:54:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[a911b16f-cb31-444c-8639-58617cec58cc] received
+[2026-11-25 11:54:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:54:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[a911b16f-cb31-444c-8639-58617cec58cc] succeeded in 0.000808151999990514s: 'Cleanup complete'
+[2026-11-25 11:55:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[dcc956db-c7e7-4a9a-be69-44545f300b2b] received
+[2026-11-25 11:55:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:55:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[dcc956db-c7e7-4a9a-be69-44545f300b2b] succeeded in 0.000494247999995423s: 'Cleanup complete'
+[2026-11-25 11:56:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[e56f69cb-27cb-4a59-ae6b-182878e4538d] received
+[2026-11-25 11:56:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:56:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[e56f69cb-27cb-4a59-ae6b-182878e4538d] succeeded in 0.0005857709993506433s: 'Cleanup complete'
+[2026-11-25 11:57:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[54dd9fd6-b565-4d04-b8db-83c2556f8d7a] received
+[2026-11-25 11:57:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:57:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[54dd9fd6-b565-4d04-b8db-83c2556f8d7a] succeeded in 0.0007455119994119741s: 'Cleanup complete'
+[2026-11-25 11:58:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[c14dd2b6-5519-4fe2-a1c7-51638051a2f0] received
+[2026-11-25 11:58:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:58:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[c14dd2b6-5519-4fe2-a1c7-51638051a2f0] succeeded in 0.0005558430002565729s: 'Cleanup complete'
+[2026-11-25 11:59:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[83c74b5d-f49f-4905-85c1-b29bf5fe34bb] received
+[2026-11-25 11:59:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 11:59:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[83c74b5d-f49f-4905-85c1-b29bf5fe34bb] succeeded in 0.0005439310007204767s: 'Cleanup complete'
+[2026-11-25 12:00:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[db809f4e-7b8c-4732-959e-3d35847e8a09] received
+[2026-11-25 12:00:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:00:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[db809f4e-7b8c-4732-959e-3d35847e8a09] succeeded in 0.0006246940001801704s: 'Cleanup complete'
+[2026-11-25 12:01:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[708a9481-377f-4c43-a255-591b3b849e3e] received
+[2026-11-25 12:01:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:01:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[708a9481-377f-4c43-a255-591b3b849e3e] succeeded in 0.00047757399988768157s: 'Cleanup complete'
+[2026-11-25 12:02:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[f16533fe-9333-4de8-afde-b193ef553a00] received
+[2026-11-25 12:02:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:02:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[f16533fe-9333-4de8-afde-b193ef553a00] succeeded in 0.0006479519997810712s: 'Cleanup complete'
+[2026-11-25 12:03:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[2b642a39-1b50-4040-96d4-ff3908c8c745] received
+[2026-11-25 12:03:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:03:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[2b642a39-1b50-4040-96d4-ff3908c8c745] succeeded in 0.0006394259999069618s: 'Cleanup complete'
+[2026-11-25 12:04:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[3e0c70e9-118b-4abc-9b7f-b02a002d93e0] received
+[2026-11-25 12:04:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:04:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[3e0c70e9-118b-4abc-9b7f-b02a002d93e0] succeeded in 0.0006018050007696729s: 'Cleanup complete'
+[2026-11-25 12:05:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[8152420c-c4d0-4214-849d-e4dffe20b09a] received
+[2026-11-25 12:05:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:05:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[8152420c-c4d0-4214-849d-e4dffe20b09a] succeeded in 0.0005752140004915418s: 'Cleanup complete'
+[2026-11-25 12:06:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[f2e37dde-1505-469d-ad61-c1c4fa325f85] received
+[2026-11-25 12:06:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:06:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[f2e37dde-1505-469d-ad61-c1c4fa325f85] succeeded in 0.0010331779994885437s: 'Cleanup complete'
+[2026-11-25 12:07:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[6d2cbf16-a94b-47f2-a0f6-ffe2dec56f15] received
+[2026-11-25 12:07:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:07:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[6d2cbf16-a94b-47f2-a0f6-ffe2dec56f15] succeeded in 0.000649808000162011s: 'Cleanup complete'
+[2026-11-25 12:08:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[a5c2c4ba-cb66-4c07-a637-4e80ebf3fbed] received
+[2026-11-25 12:08:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:08:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[a5c2c4ba-cb66-4c07-a637-4e80ebf3fbed] succeeded in 0.0008303519998662523s: 'Cleanup complete'
+[2026-11-25 12:09:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[f9876194-cf9e-4bc8-a4d2-6f4cbf3f6553] received
+[2026-11-25 12:09:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:09:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[f9876194-cf9e-4bc8-a4d2-6f4cbf3f6553] succeeded in 0.0005916669997532154s: 'Cleanup complete'
+[2026-11-25 12:10:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[10b7461a-d13f-452b-8974-9a69ef9142f5] received
+[2026-11-25 12:10:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:10:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[10b7461a-d13f-452b-8974-9a69ef9142f5] succeeded in 0.0006273939998209244s: 'Cleanup complete'
+[2026-11-25 12:11:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[e607cc13-e5ae-4eb0-93b4-86993f3d71af] received
+[2026-11-25 12:11:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:11:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[e607cc13-e5ae-4eb0-93b4-86993f3d71af] succeeded in 0.0007109630005288636s: 'Cleanup complete'
+[2026-11-25 12:12:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[2c90801e-75d1-413e-86d5-9dd1586844a1] received
+[2026-11-25 12:12:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:12:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[2c90801e-75d1-413e-86d5-9dd1586844a1] succeeded in 0.0007569210010842653s: 'Cleanup complete'
+[2026-11-25 12:13:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[f0d8abbf-100d-4f55-b9f0-a29233d96004] received
+[2026-11-25 12:13:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:13:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[f0d8abbf-100d-4f55-b9f0-a29233d96004] succeeded in 0.0008405499993386911s: 'Cleanup complete'
+[2026-11-25 12:14:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[04e9e4cc-cb3f-44c9-a870-40c20fe914c9] received
+[2026-11-25 12:14:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:14:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[04e9e4cc-cb3f-44c9-a870-40c20fe914c9] succeeded in 0.000559784999495605s: 'Cleanup complete'
+[2026-11-25 12:15:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[bfa320db-03fd-4be6-93ef-0c257e0c7da9] received
+[2026-11-25 12:15:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:15:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[bfa320db-03fd-4be6-93ef-0c257e0c7da9] succeeded in 0.0005152909998287214s: 'Cleanup complete'
+[2026-11-25 12:16:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[f273734e-7912-4c15-8b10-b38f352fa3b1] received
+[2026-11-25 12:16:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:16:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[f273734e-7912-4c15-8b10-b38f352fa3b1] succeeded in 0.0007000229998084251s: 'Cleanup complete'
+[2026-11-25 12:17:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[a2e113cb-d907-448e-9d31-5d9cd046b546] received
+[2026-11-25 12:17:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:17:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[a2e113cb-d907-448e-9d31-5d9cd046b546] succeeded in 0.0006662979994871421s: 'Cleanup complete'
+[2026-11-25 12:18:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[76e1ffc1-2a2f-4648-82ad-afb370574e78] received
+[2026-11-25 12:18:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:18:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[76e1ffc1-2a2f-4648-82ad-afb370574e78] succeeded in 0.0006436250005208421s: 'Cleanup complete'
+[2026-11-25 12:19:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[e8db4829-d683-4bf6-a350-aadab3d80392] received
+[2026-11-25 12:19:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:19:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[e8db4829-d683-4bf6-a350-aadab3d80392] succeeded in 0.0006226360001164721s: 'Cleanup complete'
+[2026-11-25 12:20:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[144e1b8c-a2d3-4bc5-9467-59055e5587e6] received
+[2026-11-25 12:20:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:20:35,023: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[144e1b8c-a2d3-4bc5-9467-59055e5587e6] succeeded in 0.0009652530006860616s: 'Cleanup complete'
+[2026-11-25 12:21:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[0823c3ab-6e5c-4d65-b850-dbce8d440f89] received
+[2026-11-25 12:21:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:21:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[0823c3ab-6e5c-4d65-b850-dbce8d440f89] succeeded in 0.0007467940013157204s: 'Cleanup complete'
+[2026-11-25 12:22:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[bc6773d1-e16b-4939-a544-940116349c00] received
+[2026-11-25 12:22:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:22:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[bc6773d1-e16b-4939-a544-940116349c00] succeeded in 0.0006233470012375619s: 'Cleanup complete'
+[2026-11-25 12:23:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[547a3d81-7471-48ec-ab7e-28f26d49f18e] received
+[2026-11-25 12:23:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:23:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[547a3d81-7471-48ec-ab7e-28f26d49f18e] succeeded in 0.0007026289986242773s: 'Cleanup complete'
+[2026-11-25 12:24:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[c0e239be-9eb5-47a3-8601-9d03d9098511] received
+[2026-11-25 12:24:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:24:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[c0e239be-9eb5-47a3-8601-9d03d9098511] succeeded in 0.0007575850013381569s: 'Cleanup complete'
+[2026-11-25 12:25:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[310383b6-9d1e-4e5d-8254-15545a7d8a8b] received
+[2026-11-25 12:25:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:25:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[310383b6-9d1e-4e5d-8254-15545a7d8a8b] succeeded in 0.0007417640008497983s: 'Cleanup complete'
+[2026-11-25 12:26:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[5333412c-1d30-4971-bbc6-25dded77410c] received
+[2026-11-25 12:26:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:26:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[5333412c-1d30-4971-bbc6-25dded77410c] succeeded in 0.0007179780004662462s: 'Cleanup complete'
+[2026-11-25 12:27:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[cc81d0ba-3ce7-4109-a021-8d3fb3bcffab] received
+[2026-11-25 12:27:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:27:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[cc81d0ba-3ce7-4109-a021-8d3fb3bcffab] succeeded in 0.0008327390005433699s: 'Cleanup complete'
+[2026-11-25 12:28:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[3bfe057e-89d9-4c3d-99e0-6ae124023ebe] received
+[2026-11-25 12:28:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:28:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[3bfe057e-89d9-4c3d-99e0-6ae124023ebe] succeeded in 0.0007529229987994768s: 'Cleanup complete'
+[2026-11-25 12:29:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[35ae0388-89fa-443f-a519-d99d41c1399c] received
+[2026-11-25 12:29:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:29:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[35ae0388-89fa-443f-a519-d99d41c1399c] succeeded in 0.0007279649998963578s: 'Cleanup complete'
+[2026-11-25 12:30:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[c7a5fca1-71e4-4105-8930-cd448211c9c5] received
+[2026-11-25 12:30:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:30:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[c7a5fca1-71e4-4105-8930-cd448211c9c5] succeeded in 0.0006265510000957875s: 'Cleanup complete'
+[2026-11-25 12:31:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[04adc137-ea20-423b-b277-e75bc6a93574] received
+[2026-11-25 12:31:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:31:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[04adc137-ea20-423b-b277-e75bc6a93574] succeeded in 0.0006504069988295669s: 'Cleanup complete'
+[2026-11-25 12:32:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[bf269cf8-d5f3-4dc6-8df6-9c6d1b04b20a] received
+[2026-11-25 12:32:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:32:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[bf269cf8-d5f3-4dc6-8df6-9c6d1b04b20a] succeeded in 0.0006828490004409105s: 'Cleanup complete'
+[2026-11-25 12:33:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[13b770cc-9a5a-43f5-95e4-4f7129651150] received
+[2026-11-25 12:33:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:33:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[13b770cc-9a5a-43f5-95e4-4f7129651150] succeeded in 0.0006460290005634306s: 'Cleanup complete'
+[2026-11-25 12:34:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[519656ad-76a3-4e94-afcb-c06626a4b8c9] received
+[2026-11-25 12:34:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:34:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[519656ad-76a3-4e94-afcb-c06626a4b8c9] succeeded in 0.0008843849991535535s: 'Cleanup complete'
+[2026-11-25 12:35:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[47ca62b0-581e-453b-8676-1dc7201e85f8] received
+[2026-11-25 12:35:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:35:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[47ca62b0-581e-453b-8676-1dc7201e85f8] succeeded in 0.0007334059991990216s: 'Cleanup complete'
+[2026-11-25 12:36:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[9678e4d1-be0d-4bdd-b4df-6e45fbfce1d8] received
+[2026-11-25 12:36:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:36:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[9678e4d1-be0d-4bdd-b4df-6e45fbfce1d8] succeeded in 0.0007289870009117294s: 'Cleanup complete'
+[2026-11-25 12:37:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[13b681e5-76dc-4f55-98cf-51785ef87d2b] received
+[2026-11-25 12:37:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:37:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[13b681e5-76dc-4f55-98cf-51785ef87d2b] succeeded in 0.0005489420000230893s: 'Cleanup complete'
+[2026-11-25 12:38:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[7ec4ea7e-1178-4f84-848e-c7cec70ce847] received
+[2026-11-25 12:38:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:38:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[7ec4ea7e-1178-4f84-848e-c7cec70ce847] succeeded in 0.0007599769996886607s: 'Cleanup complete'
+[2026-11-25 12:39:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[7fa25d46-b2e5-4f95-8f4f-3a8cbb833f84] received
+[2026-11-25 12:39:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:39:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[7fa25d46-b2e5-4f95-8f4f-3a8cbb833f84] succeeded in 0.0005984469989925856s: 'Cleanup complete'
+[2026-11-25 12:40:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[bf885747-11d4-488f-8a4f-51e816fa1ec4] received
+[2026-11-25 12:40:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:40:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[bf885747-11d4-488f-8a4f-51e816fa1ec4] succeeded in 0.0006461079992732266s: 'Cleanup complete'
+[2026-11-25 12:41:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[70cd2589-8325-4d4b-b677-99378f3d1897] received
+[2026-11-25 12:41:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:41:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[70cd2589-8325-4d4b-b677-99378f3d1897] succeeded in 0.000603477001277497s: 'Cleanup complete'
+[2026-11-25 12:42:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[dacb141b-e5e9-4493-9520-fc5d3ad63885] received
+[2026-11-25 12:42:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:42:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[dacb141b-e5e9-4493-9520-fc5d3ad63885] succeeded in 0.0005519779988389928s: 'Cleanup complete'
+[2026-11-25 12:43:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[bcbd44c9-3934-4127-a1fe-83a99c4214ba] received
+[2026-11-25 12:43:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:43:35,023: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[bcbd44c9-3934-4127-a1fe-83a99c4214ba] succeeded in 0.0008152730006258935s: 'Cleanup complete'
+[2026-11-25 12:44:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[0b8a6651-3e27-43f5-a454-0a76381afaf3] received
+[2026-11-25 12:44:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:44:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[0b8a6651-3e27-43f5-a454-0a76381afaf3] succeeded in 0.000665805999233271s: 'Cleanup complete'
+[2026-11-25 12:45:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[33c01446-de7b-4370-b5b2-853d22d570d5] received
+[2026-11-25 12:45:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:45:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[33c01446-de7b-4370-b5b2-853d22d570d5] succeeded in 0.0007492860004276736s: 'Cleanup complete'
+[2026-11-25 12:46:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[9c54359a-1c9e-4042-b2b4-8d215730fff1] received
+[2026-11-25 12:46:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:46:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[9c54359a-1c9e-4042-b2b4-8d215730fff1] succeeded in 0.0005267659998935414s: 'Cleanup complete'
+[2026-11-25 12:47:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[ec9d52b8-a91b-40d0-8e0d-1199ba8bb5f3] received
+[2026-11-25 12:47:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:47:35,023: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[ec9d52b8-a91b-40d0-8e0d-1199ba8bb5f3] succeeded in 0.0007944019998831209s: 'Cleanup complete'
+[2026-11-25 12:48:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[6018f73b-95b1-4f05-992c-1d343f00acfb] received
+[2026-11-25 12:48:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:48:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[6018f73b-95b1-4f05-992c-1d343f00acfb] succeeded in 0.0005543480001506396s: 'Cleanup complete'
+[2026-11-25 12:49:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[68b20ce4-5cdf-4d49-9c20-fb677805236a] received
+[2026-11-25 12:49:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:49:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[68b20ce4-5cdf-4d49-9c20-fb677805236a] succeeded in 0.0006403309998859186s: 'Cleanup complete'
+[2026-11-25 12:50:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[709579c1-7f55-4bc7-82d9-8540bf0501ec] received
+[2026-11-25 12:50:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:50:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[709579c1-7f55-4bc7-82d9-8540bf0501ec] succeeded in 0.0004937030007567955s: 'Cleanup complete'
+[2026-11-25 12:51:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[047a227b-9f68-4184-9c5d-ba29f6b213fc] received
+[2026-11-25 12:51:35,021: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:51:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[047a227b-9f68-4184-9c5d-ba29f6b213fc] succeeded in 0.0005253830004221527s: 'Cleanup complete'
+[2026-11-25 12:52:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[bdb8a0cb-3e5c-43ef-8be1-38862e804d06] received
+[2026-11-25 12:52:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:52:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[bdb8a0cb-3e5c-43ef-8be1-38862e804d06] succeeded in 0.0007137900011002785s: 'Cleanup complete'
+[2026-11-25 12:53:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[6f7d1f64-4b1b-410b-8ee9-9b8ffaa2a445] received
+[2026-11-25 12:53:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:53:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[6f7d1f64-4b1b-410b-8ee9-9b8ffaa2a445] succeeded in 0.0006469660002039745s: 'Cleanup complete'
+[2026-11-25 12:54:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[f6d0abb2-d479-46ed-b04b-9c4f146bc6f2] received
+[2026-11-25 12:54:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:54:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[f6d0abb2-d479-46ed-b04b-9c4f146bc6f2] succeeded in 0.0007673339987377403s: 'Cleanup complete'
+[2026-11-25 12:55:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[af110045-ee6b-45da-9c43-5cb9bcac198b] received
+[2026-11-25 12:55:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:55:35,023: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[af110045-ee6b-45da-9c43-5cb9bcac198b] succeeded in 0.0009303930000896798s: 'Cleanup complete'
+[2026-11-25 12:56:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[f1470923-a436-47cb-8ae7-dbb268da313f] received
+[2026-11-25 12:56:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:56:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[f1470923-a436-47cb-8ae7-dbb268da313f] succeeded in 0.0006668539990641875s: 'Cleanup complete'
+[2026-11-25 12:57:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[d0891dfb-cb24-465c-9dcf-e23b83f07ba2] received
+[2026-11-25 12:57:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:57:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[d0891dfb-cb24-465c-9dcf-e23b83f07ba2] succeeded in 0.000612900999840349s: 'Cleanup complete'
+[2026-11-25 12:58:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[7a73d779-2026-4915-bf43-99c0803d3d34] received
+[2026-11-25 12:58:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:58:35,023: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[7a73d779-2026-4915-bf43-99c0803d3d34] succeeded in 0.000752665999243618s: 'Cleanup complete'
+[2026-11-25 12:59:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[4284df6b-dbaa-4712-9d0d-dacb65ab4589] received
+[2026-11-25 12:59:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 12:59:35,023: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[4284df6b-dbaa-4712-9d0d-dacb65ab4589] succeeded in 0.0008026510004128795s: 'Cleanup complete'
+[2026-11-25 13:00:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[555dae58-6cd6-4dee-a151-ef2c59c04144] received
+[2026-11-25 13:00:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 13:00:35,023: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[555dae58-6cd6-4dee-a151-ef2c59c04144] succeeded in 0.0007114879990695044s: 'Cleanup complete'
+[2026-11-25 13:01:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[ca526bfe-c598-4f5f-85e0-bab8b97f0493] received
+[2026-11-25 13:01:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 13:01:35,023: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[ca526bfe-c598-4f5f-85e0-bab8b97f0493] succeeded in 0.0007970400001795497s: 'Cleanup complete'
+[2026-11-25 13:02:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[33eab360-1bcd-4ba2-943c-ab4a660eff84] received
+[2026-11-25 13:02:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 13:02:35,023: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[33eab360-1bcd-4ba2-943c-ab4a660eff84] succeeded in 0.0006853770009911386s: 'Cleanup complete'
+[2026-11-25 13:03:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[d6586e47-228f-491e-88da-5fd476e7eb37] received
+[2026-11-25 13:03:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 13:03:35,023: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[d6586e47-228f-491e-88da-5fd476e7eb37] succeeded in 0.0006588979995285627s: 'Cleanup complete'
+[2026-11-25 13:04:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[376f378a-5440-4f2e-97af-331ad7e8f7d7] received
+[2026-11-25 13:04:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 13:04:35,023: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[376f378a-5440-4f2e-97af-331ad7e8f7d7] succeeded in 0.0007823619998816866s: 'Cleanup complete'
+[2026-11-25 13:05:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[dc2fe9a1-57f3-418d-ac70-5612c41189f3] received
+[2026-11-25 13:05:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 13:05:35,023: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[dc2fe9a1-57f3-418d-ac70-5612c41189f3] succeeded in 0.0007727829997747904s: 'Cleanup complete'
+[2026-11-25 13:06:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[4f658e47-46c2-47ee-a295-b1c0ad231eb2] received
+[2026-11-25 13:06:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 13:06:35,023: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[4f658e47-46c2-47ee-a295-b1c0ad231eb2] succeeded in 0.0006497810009022942s: 'Cleanup complete'
+[2026-11-25 13:07:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[00797452-5454-409b-9dd1-4d64bcc414f4] received
+[2026-11-25 13:07:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 13:07:35,023: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[00797452-5454-409b-9dd1-4d64bcc414f4] succeeded in 0.0008219470000767615s: 'Cleanup complete'
+[2026-11-25 13:08:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[467c6520-e10c-41d4-8cda-fffb90df1264] received
+[2026-11-25 13:08:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 13:08:35,023: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[467c6520-e10c-41d4-8cda-fffb90df1264] succeeded in 0.0007761810011288617s: 'Cleanup complete'
+[2026-11-25 13:09:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[b2726671-349b-4a29-ba72-e1da27b2194d] received
+[2026-11-25 13:09:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 13:09:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[b2726671-349b-4a29-ba72-e1da27b2194d] succeeded in 0.0005967609995423118s: 'Cleanup complete'
+[2026-11-25 13:10:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[d83e03bf-249a-46e6-ac8e-1bb52444ddbb] received
+[2026-11-25 13:10:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 13:10:35,023: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[d83e03bf-249a-46e6-ac8e-1bb52444ddbb] succeeded in 0.0006806490000599297s: 'Cleanup complete'
+[2026-11-25 13:11:35,021: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[bd4f7c84-5d3d-4a05-abc0-e9a722f31d9c] received
+[2026-11-25 13:11:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 13:11:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[bd4f7c84-5d3d-4a05-abc0-e9a722f31d9c] succeeded in 0.0006091380000725621s: 'Cleanup complete'
+[2026-11-25 13:12:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[41e8bf48-0553-41fa-beb3-ebd63fa68f19] received
+[2026-11-25 13:12:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 13:12:35,023: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[41e8bf48-0553-41fa-beb3-ebd63fa68f19] succeeded in 0.0006835900003352435s: 'Cleanup complete'
+[2026-11-25 13:13:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[2cb48970-0766-41d4-9ff2-96f483adf61d] received
+[2026-11-25 13:13:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 13:13:35,023: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[2cb48970-0766-41d4-9ff2-96f483adf61d] succeeded in 0.0007266909997269977s: 'Cleanup complete'
+[2026-11-25 13:14:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[55acaf95-9614-4e36-889c-54f9ff32cbca] received
+[2026-11-25 13:14:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 13:14:35,023: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[55acaf95-9614-4e36-889c-54f9ff32cbca] succeeded in 0.0007106410012056585s: 'Cleanup complete'
+[2026-11-25 13:15:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[a7e7540b-1b6f-4952-ad15-3afe521cea5e] received
+[2026-11-25 13:15:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 13:15:35,023: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[a7e7540b-1b6f-4952-ad15-3afe521cea5e] succeeded in 0.0006314509992080275s: 'Cleanup complete'
+[2026-11-25 13:16:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[eb377e49-a4ca-445c-8c8c-bf18510596e7] received
+[2026-11-25 13:16:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 13:16:35,023: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[eb377e49-a4ca-445c-8c8c-bf18510596e7] succeeded in 0.0007991599995875731s: 'Cleanup complete'
+[2026-11-25 13:17:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[d7bcf55a-6d38-4a7c-8486-fd67e8929b4f] received
+[2026-11-25 13:17:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 13:17:35,023: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[d7bcf55a-6d38-4a7c-8486-fd67e8929b4f] succeeded in 0.000698828998793033s: 'Cleanup complete'
+[2026-11-25 13:18:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[429efc4a-5f41-4359-827f-2085d36bc54b] received
+[2026-11-25 13:18:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 13:18:35,023: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[429efc4a-5f41-4359-827f-2085d36bc54b] succeeded in 0.0007010539993643761s: 'Cleanup complete'
+[2026-11-25 13:19:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[f71746f0-8d39-4702-bd7f-add5b3fb739e] received
+[2026-11-25 13:19:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 13:19:35,023: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[f71746f0-8d39-4702-bd7f-add5b3fb739e] succeeded in 0.0007448560008924687s: 'Cleanup complete'
+[2026-11-25 13:20:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[f61bad00-b9e8-41df-a731-96be2022780a] received
+[2026-11-25 13:20:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 13:20:35,023: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[f61bad00-b9e8-41df-a731-96be2022780a] succeeded in 0.0006650150007772027s: 'Cleanup complete'
+[2026-11-25 13:21:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[41a6974d-686c-479c-9ff4-65b10306efbc] received
+[2026-11-25 13:21:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 13:21:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[41a6974d-686c-479c-9ff4-65b10306efbc] succeeded in 0.0005831990001752274s: 'Cleanup complete'
+[2026-11-25 13:22:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[ae7168b4-3eaa-4b46-b308-1b5d83aec098] received
+[2026-11-25 13:22:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 13:22:35,023: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[ae7168b4-3eaa-4b46-b308-1b5d83aec098] succeeded in 0.0007164929993450642s: 'Cleanup complete'
+[2026-11-25 13:23:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[60cc1f6d-51a8-49e7-b6a6-1138800ca1d6] received
+[2026-11-25 13:23:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 13:23:35,023: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[60cc1f6d-51a8-49e7-b6a6-1138800ca1d6] succeeded in 0.0005857739997736644s: 'Cleanup complete'
+[2026-11-25 13:24:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[ae8c8d5b-5061-4775-88c2-17cf03c0c376] received
+[2026-11-25 13:24:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 13:24:35,023: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[ae8c8d5b-5061-4775-88c2-17cf03c0c376] succeeded in 0.0007957729994814144s: 'Cleanup complete'
+[2026-11-25 13:25:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[f46ddf47-eb81-4e85-b213-9b90b4f76ac0] received
+[2026-11-25 13:25:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 13:25:35,023: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[f46ddf47-eb81-4e85-b213-9b90b4f76ac0] succeeded in 0.0005714269991585752s: 'Cleanup complete'
+[2026-11-25 13:26:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[6312f710-9970-47b2-9282-20cf586f9766] received
+[2026-11-25 13:26:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 13:26:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[6312f710-9970-47b2-9282-20cf586f9766] succeeded in 0.000486155000544386s: 'Cleanup complete'
+[2026-11-25 13:27:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[dde949a1-7dcf-4e70-bfa8-c995b5ecc3a8] received
+[2026-11-25 13:27:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 13:27:35,023: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[dde949a1-7dcf-4e70-bfa8-c995b5ecc3a8] succeeded in 0.0006443760012189159s: 'Cleanup complete'
+[2026-11-25 13:28:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[832374dc-99f8-48e8-b776-f8792d2b86ab] received
+[2026-11-25 13:28:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 13:28:35,023: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[832374dc-99f8-48e8-b776-f8792d2b86ab] succeeded in 0.0006666179997409927s: 'Cleanup complete'
+[2026-11-25 13:29:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[1aba8533-1afe-490a-b64a-b9dea5f620f8] received
+[2026-11-25 13:29:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 13:29:35,023: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[1aba8533-1afe-490a-b64a-b9dea5f620f8] succeeded in 0.0006854840012238128s: 'Cleanup complete'
+[2026-11-25 13:30:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[75733357-9dba-40d0-8ff1-e71e6c3170d1] received
+[2026-11-25 13:30:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 13:30:35,023: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[75733357-9dba-40d0-8ff1-e71e6c3170d1] succeeded in 0.0006177249997563194s: 'Cleanup complete'
+[2026-11-25 13:31:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[1b13cd93-3233-4913-b171-b1ff32d9ccb2] received
+[2026-11-25 13:31:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 13:31:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[1b13cd93-3233-4913-b171-b1ff32d9ccb2] succeeded in 0.0005667579989676597s: 'Cleanup complete'
+[2026-11-25 13:32:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[3408a885-8d41-4f6d-b5dd-200f8bc11bfa] received
+[2026-11-25 13:32:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 13:32:35,023: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[3408a885-8d41-4f6d-b5dd-200f8bc11bfa] succeeded in 0.0006240980001166463s: 'Cleanup complete'
+[2026-11-25 13:33:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[fb27e603-c667-4f9d-a5bd-6dcfe47a8175] received
+[2026-11-25 13:33:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 13:33:35,023: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[fb27e603-c667-4f9d-a5bd-6dcfe47a8175] succeeded in 0.000822805999632692s: 'Cleanup complete'
+[2026-11-25 13:34:35,022: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[2e307afd-0b66-4d89-8d15-6f6e16aff3b3] received
+[2026-11-25 13:34:35,022: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 13:34:35,023: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[2e307afd-0b66-4d89-8d15-6f6e16aff3b3] succeeded in 0.0007885499999247259s: 'Cleanup complete'
+[2026-11-25 13:45:10,700: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[c7ff05ac-f054-44df-ab53-43946f625dbb] received
+[2026-11-25 13:45:10,700: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 13:45:10,701: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[c7ff05ac-f054-44df-ab53-43946f625dbb] succeeded in 0.0007967870005813893s: 'Cleanup complete'
+[2026-11-25 13:46:10,698: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[00b9b416-f045-4102-831e-ee2cfbbb3d15] received
+[2026-11-25 13:46:10,698: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 13:46:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[00b9b416-f045-4102-831e-ee2cfbbb3d15] succeeded in 0.0008847329991112929s: 'Cleanup complete'
+[2026-11-25 13:47:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[8e2abb43-df53-4df0-b6c0-d3a6bbb6c2d8] received
+[2026-11-25 13:47:10,699: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 13:47:10,700: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[8e2abb43-df53-4df0-b6c0-d3a6bbb6c2d8] succeeded in 0.0009778509993338957s: 'Cleanup complete'
+[2026-11-25 13:48:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[9274bed2-e6bd-4c15-a066-19d90a9dfdbb] received
+[2026-11-25 13:48:10,699: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 13:48:10,700: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[9274bed2-e6bd-4c15-a066-19d90a9dfdbb] succeeded in 0.000879332999829785s: 'Cleanup complete'
+[2026-11-25 13:48:36,991: INFO/MainProcess] Task app.tasks.orders.generate_order_pdf[3adf0be9-4dcc-443c-a4de-e3429258d6dd] received
+[2026-11-25 13:48:38,993: INFO/MainProcess] Task app.tasks.orders.generate_order_pdf[3adf0be9-4dcc-443c-a4de-e3429258d6dd] succeeded in 2.002056433000689s: 'PDF generated for order 1'
+[2026-11-25 13:48:38,996: INFO/MainProcess] Task app.tasks.orders.send_order_email[2ae12d1e-1aa9-486b-9343-aaa79ac2eb50] received
+[2026-11-25 13:48:39,997: INFO/MainProcess] Task app.tasks.orders.send_order_email[2ae12d1e-1aa9-486b-9343-aaa79ac2eb50] succeeded in 1.0012308469995332s: 'Email sent to s@sirius.ru for order 1'
+[2026-11-25 13:48:39,999: INFO/MainProcess] Task app.tasks.orders.generate_order_pdf[9c18e54d-d635-4ad3-aa0c-7815273d41ef] received
+[2026-11-25 13:48:40,001: INFO/MainProcess] Task app.tasks.orders.generate_order_pdf[9c18e54d-d635-4ad3-aa0c-7815273d41ef] succeeded in 0.0009387359987158561s: 'PDF already generated for order 1'
+[2026-11-25 13:48:40,002: INFO/MainProcess] Task app.tasks.orders.send_order_email[26b5a437-a2a6-42c7-8015-8ec58a57e691] received
+[2026-11-25 13:48:41,004: INFO/MainProcess] Task app.tasks.orders.send_order_email[26b5a437-a2a6-42c7-8015-8ec58a57e691] succeeded in 1.0014708839989908s: 'Email sent to a@a.com for order 1'
+[2026-11-25 13:48:46,299: INFO/MainProcess] Task app.tasks.orders.generate_order_pdf[ea30277f-9389-4464-b516-d3929578985c] received
+[2026-11-25 13:48:46,301: INFO/MainProcess] Task app.tasks.orders.generate_order_pdf[ea30277f-9389-4464-b516-d3929578985c] succeeded in 0.0011445180007285671s: 'PDF already generated for order 1'
+[2026-11-25 13:48:46,303: INFO/MainProcess] Task app.tasks.orders.send_order_email[d0ed598c-fd7f-45b2-bf3a-cd9fd5ecf7a7] received
+[2026-11-25 13:48:47,305: INFO/MainProcess] Task app.tasks.orders.send_order_email[d0ed598c-fd7f-45b2-bf3a-cd9fd5ecf7a7] succeeded in 1.0019724579997273s: 'Email sent to student@sirius.ru for order 1'
+[2026-11-25 13:49:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[ab9dbf65-8ed9-4451-9555-cfc749b40655] received
+[2026-11-25 13:49:10,699: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 13:49:10,700: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[ab9dbf65-8ed9-4451-9555-cfc749b40655] succeeded in 0.0008859059998940211s: 'Cleanup complete'
+[2026-11-25 13:50:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[4e2ddbb1-fcbb-4d5d-be3c-ef05e3d6f6a5] received
+[2026-11-25 13:50:10,699: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 13:50:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[4e2ddbb1-fcbb-4d5d-be3c-ef05e3d6f6a5] succeeded in 0.0007346279999183025s: 'Cleanup complete'
+[2026-11-25 13:51:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[1fdc26c2-5ab0-4a77-b00b-8c3a463bbf85] received
+[2026-11-25 13:51:10,699: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 13:51:10,700: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[1fdc26c2-5ab0-4a77-b00b-8c3a463bbf85] succeeded in 0.0009256310004275292s: 'Cleanup complete'
+[2026-11-25 13:52:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[4b89c0b3-f134-40d1-b060-8b842d09e994] received
+[2026-11-25 13:52:10,699: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 13:52:10,700: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[4b89c0b3-f134-40d1-b060-8b842d09e994] succeeded in 0.0009453590009798063s: 'Cleanup complete'
+[2026-11-25 13:53:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[b274374d-cb2d-4448-b10d-4482c46d65c2] received
+[2026-11-25 13:53:10,699: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 13:53:10,700: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[b274374d-cb2d-4448-b10d-4482c46d65c2] succeeded in 0.000719528999979957s: 'Cleanup complete'
+[2026-11-25 13:54:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[7d3973a3-2954-4608-94f8-885c083e41a5] received
+[2026-11-25 13:54:10,699: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 13:54:10,700: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[7d3973a3-2954-4608-94f8-885c083e41a5] succeeded in 0.0008251500003098045s: 'Cleanup complete'
+[2026-11-25 13:55:10,698: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[24346a30-95c2-4cf4-9c06-e6490f5d1adc] received
+[2026-11-25 13:55:10,698: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 13:55:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[24346a30-95c2-4cf4-9c06-e6490f5d1adc] succeeded in 0.0007076159999996889s: 'Cleanup complete'
+[2026-11-25 13:56:10,698: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[d81d0f8c-19ef-4539-982d-34463d6c0788] received
+[2026-11-25 13:56:10,698: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 13:56:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[d81d0f8c-19ef-4539-982d-34463d6c0788] succeeded in 0.0007411300011881394s: 'Cleanup complete'
+[2026-11-25 13:57:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[a79fd643-8b0d-4b01-b211-07ee13061976] received
+[2026-11-25 13:57:10,699: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 13:57:10,700: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[a79fd643-8b0d-4b01-b211-07ee13061976] succeeded in 0.0008656980007799575s: 'Cleanup complete'
+[2026-11-25 13:58:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[0044f381-3114-48ff-957e-195498438bdb] received
+[2026-11-25 13:58:10,699: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 13:58:10,700: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[0044f381-3114-48ff-957e-195498438bdb] succeeded in 0.0008833510000840761s: 'Cleanup complete'
+[2026-11-25 13:59:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[94e4ad23-8cfe-4df8-97d9-4e260bbb8650] received
+[2026-11-25 13:59:10,699: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 13:59:10,700: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[94e4ad23-8cfe-4df8-97d9-4e260bbb8650] succeeded in 0.0007553680006822105s: 'Cleanup complete'
+[2026-11-25 14:00:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[7b7c6363-1b90-4072-81a0-284e6d298510] received
+[2026-11-25 14:00:10,699: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 14:00:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[7b7c6363-1b90-4072-81a0-284e6d298510] succeeded in 0.0007221640007628594s: 'Cleanup complete'
+[2026-11-25 14:01:07,592: INFO/MainProcess] Task app.tasks.orders.generate_order_pdf[5ea5fa60-6d12-402c-8374-6d166a0565df] received
+[2026-11-25 14:01:07,593: INFO/MainProcess] Task app.tasks.orders.generate_order_pdf[5ea5fa60-6d12-402c-8374-6d166a0565df] succeeded in 0.0009567899996909546s: 'PDF already generated for order 1'
+[2026-11-25 14:01:07,595: INFO/MainProcess] Task app.tasks.orders.send_order_email[0cf2bfed-4af3-4bfa-9885-f97f6c4cef4a] received
+[2026-11-25 14:01:08,597: INFO/MainProcess] Task app.tasks.orders.send_order_email[0cf2bfed-4af3-4bfa-9885-f97f6c4cef4a] succeeded in 1.0013053790007689s: 'Email sent to s@sirius.ru for order 1'
+[2026-11-25 14:01:08,835: INFO/MainProcess] Task app.tasks.orders.generate_order_pdf[89a90bed-086f-4968-b10e-8f932714bf9c] received
+[2026-11-25 14:01:08,836: INFO/MainProcess] Task app.tasks.orders.generate_order_pdf[89a90bed-086f-4968-b10e-8f932714bf9c] succeeded in 0.0010539859995333245s: 'PDF already generated for order 1'
+[2026-11-25 14:01:08,838: INFO/MainProcess] Task app.tasks.orders.send_order_email[18505335-3db9-4e7e-9d8f-2b1d5d0b016c] received
+[2026-11-25 14:01:09,840: INFO/MainProcess] Task app.tasks.orders.send_order_email[18505335-3db9-4e7e-9d8f-2b1d5d0b016c] succeeded in 1.001445515999876s: 'Email sent to a@a.com for order 1'
+[2026-11-25 14:01:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[1d05efe9-2df1-4ea9-bc7a-eb4913f3ce53] received
+[2026-11-25 14:01:10,699: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 14:01:10,700: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[1d05efe9-2df1-4ea9-bc7a-eb4913f3ce53] succeeded in 0.0009336459988844581s: 'Cleanup complete'
+[2026-11-25 14:01:16,852: INFO/MainProcess] Task app.tasks.orders.generate_order_pdf[2e3da9fc-90b6-4f82-b94a-a18e42abe7c5] received
+[2026-11-25 14:01:16,853: INFO/MainProcess] Task app.tasks.orders.generate_order_pdf[2e3da9fc-90b6-4f82-b94a-a18e42abe7c5] succeeded in 0.001075375999789685s: 'PDF already generated for order 1'
+[2026-11-25 14:01:16,855: INFO/MainProcess] Task app.tasks.orders.send_order_email[4484f112-0776-4f9c-b060-2e514e33c224] received
+[2026-11-25 14:01:17,857: INFO/MainProcess] Task app.tasks.orders.send_order_email[4484f112-0776-4f9c-b060-2e514e33c224] succeeded in 1.0014394840000023s: 'Email sent to student@sirius.ru for order 1'
+[2026-11-25 14:02:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[5029f568-02c1-4c64-808f-03e9790ae72b] received
+[2026-11-25 14:02:10,699: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 14:02:10,700: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[5029f568-02c1-4c64-808f-03e9790ae72b] succeeded in 0.0008863759994710563s: 'Cleanup complete'
+[2026-11-25 14:03:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[a1c7be1d-8c51-4544-af9c-496d1df84883] received
+[2026-11-25 14:03:10,699: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 14:03:10,700: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[a1c7be1d-8c51-4544-af9c-496d1df84883] succeeded in 0.0010235179997835075s: 'Cleanup complete'
+[2026-11-25 14:04:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[f859b537-c558-4033-88f8-505cdd2311a6] received
+[2026-11-25 14:04:10,699: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 14:04:10,700: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[f859b537-c558-4033-88f8-505cdd2311a6] succeeded in 0.0007907250001153443s: 'Cleanup complete'
+[2026-11-25 14:05:10,698: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[f34271a1-460f-40de-bf27-3953ac51313a] received
+[2026-11-25 14:05:10,699: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 14:05:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[f34271a1-460f-40de-bf27-3953ac51313a] succeeded in 0.0008356100006494671s: 'Cleanup complete'
+[2026-11-25 14:06:10,698: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[2d7844d2-7c78-4fb3-b134-c9972acc418c] received
+[2026-11-25 14:06:10,698: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 14:06:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[2d7844d2-7c78-4fb3-b134-c9972acc418c] succeeded in 0.0005617289989459096s: 'Cleanup complete'
+[2026-11-25 14:07:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[49aa6754-43fd-4d0a-b3a7-8dfda65d617a] received
+[2026-11-25 14:07:10,699: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 14:07:10,700: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[49aa6754-43fd-4d0a-b3a7-8dfda65d617a] succeeded in 0.0008858759993017884s: 'Cleanup complete'
+[2026-11-25 14:08:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[e22c1ad4-d631-4634-9596-f2f3dadfbb3b] received
+[2026-11-25 14:08:10,699: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 14:08:10,700: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[e22c1ad4-d631-4634-9596-f2f3dadfbb3b] succeeded in 0.0010902150006586453s: 'Cleanup complete'
+[2026-11-25 14:09:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[f29181a2-2fbf-4d43-9e01-66b0a2378d3b] received
+[2026-11-25 14:09:10,699: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 14:09:10,700: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[f29181a2-2fbf-4d43-9e01-66b0a2378d3b] succeeded in 0.0008995520001917612s: 'Cleanup complete'
+[2026-11-25 14:10:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[76873f2a-a3af-4886-a3f2-3dedb3e19a8b] received
+[2026-11-25 14:10:10,699: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 14:10:10,700: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[76873f2a-a3af-4886-a3f2-3dedb3e19a8b] succeeded in 0.000673241998811136s: 'Cleanup complete'
+[2026-11-25 14:11:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[16c0e70e-6321-482e-bb46-67512235aec6] received
+[2026-11-25 14:11:10,699: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 14:11:10,700: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[16c0e70e-6321-482e-bb46-67512235aec6] succeeded in 0.0008230460007325746s: 'Cleanup complete'
+[2026-11-25 14:12:10,698: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[da749edd-6c01-4e91-a705-dbc426244e6d] received
+[2026-11-25 14:12:10,699: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 14:12:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[da749edd-6c01-4e91-a705-dbc426244e6d] succeeded in 0.0006966560013097478s: 'Cleanup complete'
+[2026-11-25 14:13:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[81660b52-51a0-4d76-a418-cfc59289a93d] received
+[2026-11-25 14:13:10,699: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 14:13:10,700: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[81660b52-51a0-4d76-a418-cfc59289a93d] succeeded in 0.0008944420005718712s: 'Cleanup complete'
+[2026-11-25 14:14:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[2dcbed8e-39a5-47dd-9429-d7cb5f2ec07e] received
+[2026-11-25 14:14:10,699: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 14:14:10,700: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[2dcbed8e-39a5-47dd-9429-d7cb5f2ec07e] succeeded in 0.0008258819998445688s: 'Cleanup complete'
+[2026-11-25 14:15:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[1a320009-d8c7-46f0-ab40-8d4ca041e62f] received
+[2026-11-25 14:15:10,699: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 14:15:10,700: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[1a320009-d8c7-46f0-ab40-8d4ca041e62f] succeeded in 0.0009002530005091103s: 'Cleanup complete'
+[2026-11-25 14:16:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[270c6cff-b119-43a6-ac79-13c3105c6e9d] received
+[2026-11-25 14:16:10,699: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 14:16:10,700: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[270c6cff-b119-43a6-ac79-13c3105c6e9d] succeeded in 0.000821813999209553s: 'Cleanup complete'
+[2026-11-25 14:17:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[f24920c6-3a71-44a7-b316-6a8cef14ad93] received
+[2026-11-25 14:17:10,699: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 14:17:10,700: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[f24920c6-3a71-44a7-b316-6a8cef14ad93] succeeded in 0.0007420920010190457s: 'Cleanup complete'
+[2026-11-25 14:18:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[618f6f75-1ae9-4394-ad80-4bbe93d2d5b5] received
+[2026-11-25 14:18:10,699: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 14:18:10,700: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[618f6f75-1ae9-4394-ad80-4bbe93d2d5b5] succeeded in 0.0007723700000497047s: 'Cleanup complete'
+[2026-11-25 14:19:10,698: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[9139d5ca-f4b2-4ef6-b235-42c26cdc71b5] received
+[2026-11-25 14:19:10,699: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 14:19:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[9139d5ca-f4b2-4ef6-b235-42c26cdc71b5] succeeded in 0.0006698850011161994s: 'Cleanup complete'
+[2026-11-25 14:20:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[78e3a267-9cfe-4c31-9841-1f55f23045ea] received
+[2026-11-25 14:20:10,699: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 14:20:10,700: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[78e3a267-9cfe-4c31-9841-1f55f23045ea] succeeded in 0.0007412430004478665s: 'Cleanup complete'
+[2026-11-25 14:21:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[0536c4dc-2666-46de-bd77-82f69f0e56ef] received
+[2026-11-25 14:21:10,699: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 14:21:10,700: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[0536c4dc-2666-46de-bd77-82f69f0e56ef] succeeded in 0.001100026000131038s: 'Cleanup complete'
+[2026-11-25 14:22:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[a474b139-c8ee-4c09-a3ed-d5c8844006ca] received
+[2026-11-25 14:22:10,699: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 14:22:10,700: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[a474b139-c8ee-4c09-a3ed-d5c8844006ca] succeeded in 0.0006642620010097744s: 'Cleanup complete'
+[2026-11-25 14:23:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[03bfd3a8-a241-42fe-a1c3-89c164efa040] received
+[2026-11-25 14:23:10,699: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 14:23:10,700: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[03bfd3a8-a241-42fe-a1c3-89c164efa040] succeeded in 0.000993567000477924s: 'Cleanup complete'
+[2026-11-25 14:24:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[0970aea1-e04c-4f44-a881-60bab01d4805] received
+[2026-11-25 14:24:10,699: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 14:24:10,700: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[0970aea1-e04c-4f44-a881-60bab01d4805] succeeded in 0.0007962100007716799s: 'Cleanup complete'
+[2026-11-25 14:25:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[c7a194ae-22a7-430f-bbd1-3c03991148b8] received
+[2026-11-25 14:25:10,699: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 14:25:10,700: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[c7a194ae-22a7-430f-bbd1-3c03991148b8] succeeded in 0.0010087680002470734s: 'Cleanup complete'
+[2026-11-25 14:26:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[47c6f657-6c70-4645-927b-3e868f33a220] received
+[2026-11-25 14:26:10,699: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 14:26:10,700: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[47c6f657-6c70-4645-927b-3e868f33a220] succeeded in 0.0009059740004886407s: 'Cleanup complete'
+[2026-11-25 14:27:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[37b6df2b-8910-409f-b575-79218b6ae206] received
+[2026-11-25 14:27:10,699: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 14:27:10,700: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[37b6df2b-8910-409f-b575-79218b6ae206] succeeded in 0.000818645999970613s: 'Cleanup complete'
+[2026-11-25 14:28:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[e2f1a9e0-add9-4b84-bc02-1c3903932605] received
+[2026-11-25 14:28:10,699: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 14:28:10,700: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[e2f1a9e0-add9-4b84-bc02-1c3903932605] succeeded in 0.0010306650001439266s: 'Cleanup complete'
+[2026-11-25 14:29:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[fc72608a-dcab-46f4-8ea4-f4760661c759] received
+[2026-11-25 14:29:10,699: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 14:29:10,700: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[fc72608a-dcab-46f4-8ea4-f4760661c759] succeeded in 0.0007288489996426506s: 'Cleanup complete'
+[2026-11-25 14:30:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[d27db1e7-6422-47f7-8965-e9a2ad7057f6] received
+[2026-11-25 14:30:10,699: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 14:30:10,700: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[d27db1e7-6422-47f7-8965-e9a2ad7057f6] succeeded in 0.000617951000094763s: 'Cleanup complete'
+[2026-11-25 14:31:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[579bfe8b-6ef2-44d0-8e72-1aae676c3a01] received
+[2026-11-25 14:31:10,699: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 14:31:10,700: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[579bfe8b-6ef2-44d0-8e72-1aae676c3a01] succeeded in 0.0008699840000190306s: 'Cleanup complete'
+[2026-11-25 14:32:10,700: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[c267465c-f760-42b3-bdd1-64964cf132ce] received
+[2026-11-25 14:32:10,700: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 14:32:10,701: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[c267465c-f760-42b3-bdd1-64964cf132ce] succeeded in 0.0010094420013047056s: 'Cleanup complete'
+[2026-11-25 14:33:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[5375a1ad-64dc-4b88-8c4a-34d855406382] received
+[2026-11-25 14:33:10,699: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 14:33:10,700: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[5375a1ad-64dc-4b88-8c4a-34d855406382] succeeded in 0.0011128989990538685s: 'Cleanup complete'
+[2026-11-25 14:34:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[1d65362a-acf2-4019-a19b-c41d3af5e775] received
+[2026-11-25 14:34:10,699: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 14:34:10,700: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[1d65362a-acf2-4019-a19b-c41d3af5e775] succeeded in 0.0009046449995366856s: 'Cleanup complete'
+[2026-11-25 14:35:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[0ea1518a-499d-44e4-9fd9-15b7083054bc] received
+[2026-11-25 14:35:10,699: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 14:35:10,700: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[0ea1518a-499d-44e4-9fd9-15b7083054bc] succeeded in 0.0007010520002950216s: 'Cleanup complete'
+[2026-11-25 14:36:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[24a3f2cd-52fd-44ec-90f3-008fcdba4263] received
+[2026-11-25 14:36:10,699: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 14:36:10,700: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[24a3f2cd-52fd-44ec-90f3-008fcdba4263] succeeded in 0.0006928610000613844s: 'Cleanup complete'
+[2026-11-25 14:37:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[0c62d9d2-f6be-4eec-98c2-6d82f27eb090] received
+[2026-11-25 14:37:10,699: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 14:37:10,700: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[0c62d9d2-f6be-4eec-98c2-6d82f27eb090] succeeded in 0.0008552069994038902s: 'Cleanup complete'
+[2026-11-25 14:38:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[0085f6b3-fb2b-4d89-b546-99cd5fba0c7d] received
+[2026-11-25 14:38:10,700: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 14:38:10,700: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[0085f6b3-fb2b-4d89-b546-99cd5fba0c7d] succeeded in 0.0009128620004048571s: 'Cleanup complete'
+[2026-11-25 14:39:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[d01228fb-8bd8-4b0f-882c-a228610f5e2c] received
+[2026-11-25 14:39:10,699: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 14:39:10,700: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[d01228fb-8bd8-4b0f-882c-a228610f5e2c] succeeded in 0.0005734389997087419s: 'Cleanup complete'
+[2026-11-25 14:40:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[38b3c6a7-e553-4661-9329-ff9976ee9e94] received
+[2026-11-25 14:40:10,699: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 14:40:10,700: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[38b3c6a7-e553-4661-9329-ff9976ee9e94] succeeded in 0.0009952809996320866s: 'Cleanup complete'
+[2026-11-25 14:41:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[5c6c6daa-b548-4ac1-96de-0ea615419616] received
+[2026-11-25 14:41:10,699: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 14:41:10,700: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[5c6c6daa-b548-4ac1-96de-0ea615419616] succeeded in 0.000839616001030663s: 'Cleanup complete'
+[2026-11-25 14:42:10,699: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[1d699a51-084d-46c0-84e6-c75f91b1b455] received
+[2026-11-25 14:42:10,699: WARNING/MainProcess] [Beat] Cleaning up old task logs...
+[2026-11-25 14:42:10,700: INFO/MainProcess] Task app.tasks.orders.cleanup_old_task_logs[1d699a51-084d-46c0-84e6-c75f91b1b455] succeeded in 0.0007772450007905718s: 'Cleanup complete'
