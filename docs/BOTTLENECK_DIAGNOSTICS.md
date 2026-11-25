@@ -40,11 +40,11 @@ SQLAlchemy instrumentation измеряет длительность каждо�
 
 Redis exporter продолжает собирать общие показатели Redis: память, подключённые клиенты, количество команд и keyspace hits/misses.
 
-Дополнительно сам репозиторий меню публикует:
+Дополнительно сам репозиторий меню публикует (в том числе для быстрого JSON-ответа напрямую из Redis):
 - sirius_menu_cache_operations_total{operation,result} — read hit/miss/error, write success/error, lock acquired/timeout/error и исход ожидания lock;
 - sirius_menu_cache_operation_duration_seconds_bucket — длительность чтения/записи/lock.
 
-Эти показатели относятся к cache-aside меню, в отличие от глобальных Redis keyspace hit/miss, которые включают все Redis-ключи приложения.
+Эти показатели относятся к cache-aside меню, в отличие от глобальных Redis keyspace hit/miss, которые включают все Redis-ключи приложения. При cache miss быстрый JSON-путь и последующий Cache-Aside могут выполнить два Redis GET; счётчик отражает фактические операции Redis, а не число HTTP-запросов.
 
 ### Ресурсы Linux-хоста и RabbitMQ
 
@@ -74,9 +74,20 @@ Node exporter добавлен для CPU, доступной RAM и файло�
 
 В Prometheus targets должны быть UP jobs sirius_app, postgres, node, rabbitmq и redis. Новый дашборд появится в папке Sirius.Еда.
 
-Если изменялась только конфигурация Prometheus или Compose:
+После обновления конфигурации или кода пересоздайте exporters и Prometheus, а API перезапустите:
 
     docker compose up -d --force-recreate postgres-exporter node-exporter prometheus
+    # остановите текущий uvicorn (Ctrl+C), затем запустите снова:
+    uvicorn app.main:app --host 0.0.0.0 --port 8000
+
+Проверьте, что все пять targets имеют статус UP. Для проверки непосредственно экспортёров:
+
+    docker compose exec postgres-exporter wget -qO- http://localhost:9187/metrics | grep -E 'pg_stat_activity_count|pg_stat_database_(blks_hit|blks_read|deadlocks)'
+    docker compose exec node-exporter wget -qO- http://localhost:9100/metrics | grep -E 'node_cpu_seconds_total|node_memory_MemAvailable_bytes|node_filesystem_avail_bytes'
+
+Если в минимальном exporter-образе нет wget, проверьте те же метрики через Prometheus Graph: pg_stat_activity_count, pg_stat_database_blks_hit, pg_stat_database_deadlocks, node_cpu_seconds_total, node_memory_MemAvailable_bytes, node_filesystem_avail_bytes.
+
+Панели ошибок показывают 0, если соответствующих событий ещё не было. Отсутствие метрик PostgreSQL или node_exporter не маскируется нулём: сначала проверьте соответствующие targets на странице /targets.
 
 ## Полезные PromQL-запросы
 
