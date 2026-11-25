@@ -5,10 +5,12 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 from app.core.config import settings
+from app.core.metrics import instrument_sqlalchemy_engine
 
 DATABASE_URL = settings.DATABASE_URL
 
 engine = create_engine(DATABASE_URL, echo=os.getenv("SQL_ECHO", "0") == "1")
+instrument_sqlalchemy_engine(engine)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 

@@ -1,6 +1,7 @@
 """Точка входа."""
+import asyncio
 import logging
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -17,7 +18,11 @@ from app.modules.users.router import router as users_router
 # Практическая работа № 9: observability включается без изменения бизнес-логики.
 from app.core.logging import setup_logging
 from app.core.correlation import correlation_id_middleware
-from app.core.metrics import metrics_middleware
+from app.core.metrics import (
+    configure_threadpool,
+    metrics_middleware,
+    sample_threadpool_metrics,
+)
 from app.core.sentry import setup_sentry
 from app.core.tracing import setup_tracing
 from prometheus_fastapi_instrumentator import Instrumentator
@@ -57,14 +62,23 @@ def _warm() -> None:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    if not use_memory_backend():
-        _seed()
-        _warm()
-    else:
-        print("[startup] REPO_BACKEND=memory — seed/warm пропущены")
-    print("[startup] Application startup complete")
-    yield
-    print("[shutdown] Bye")
+    thread_tokens = configure_threadpool()
+    print(f"[startup] AnyIO thread pool: {thread_tokens} tokens")
+    sampler_task = asyncio.create_task(sample_threadpool_metrics())
+
+    try:
+        if not use_memory_backend():
+            _seed()
+            _warm()
+        else:
+            print("[startup] REPO_BACKEND=memory — seed/warm пропущены")
+        print("[startup] Application startup complete")
+        yield
+    finally:
+        sampler_task.cancel()
+        with suppress(asyncio.CancelledError):
+            await sampler_task
+        print("[shutdown] Bye")
 
 
 app = FastAPI(

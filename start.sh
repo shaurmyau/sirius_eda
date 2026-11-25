@@ -33,7 +33,7 @@ start() {
 }
 
 echo "==> 0. Поднимаем инфраструктуру (Docker)..."
-docker compose up -d db redis rabbitmq prometheus redis-exporter grafana jaeger > /dev/null
+docker compose up -d db redis rabbitmq prometheus redis-exporter postgres-exporter node-exporter grafana jaeger > /dev/null
 
 echo -n "==> Ожидание PostgreSQL..."
 until docker compose exec -T db pg_isready -U sirius -d sirius_food >/dev/null 2>&1; do

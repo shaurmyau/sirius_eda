@@ -19,6 +19,7 @@ from abc import ABC, abstractmethod
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
+from app.core.metrics import record_menu_cache_operation
 from app.core.redis import redis_client
 from app.entities import MenuItem
 from app.mappers import to_menu_item
@@ -103,20 +104,27 @@ class SqlMenuRepository(MenuRepository):
 
     # ---------- кеш ----------
     def _read_cache(self, key: str) -> list[MenuItem] | None:
+        started_at = time.perf_counter()
         try:
             raw = redis_client.get(key)
             if raw is None:
+                record_menu_cache_operation("read", "miss", started_at)
                 return None
             data = json.loads(raw)
             if isinstance(data, dict) and "items" in data:
-                return [_deserialize(x) for x in data["items"]]
-            return [_deserialize(x) for x in data]
+                result = [_deserialize(x) for x in data["items"]]
+            else:
+                result = [_deserialize(x) for x in data]
+            record_menu_cache_operation("read", "hit", started_at)
+            return result
         except Exception as exc:
+            record_menu_cache_operation("read", "error", started_at)
             log.warning("cache read error [%s]: %s", key, exc)
             return None
 
     def _write_cache(self, key: str, items: list[MenuItem], ttl: int,
                      envelope: dict | None = None) -> None:
+        started_at = time.perf_counter()
         try:
             if envelope is None:
                 envelope = {"status": "success"}
@@ -124,7 +132,9 @@ class SqlMenuRepository(MenuRepository):
                 envelope = dict(envelope)
             envelope["items"] = [_serialize(i) for i in items]
             redis_client.setex(key, ttl, json.dumps(envelope))
+            record_menu_cache_operation("write", "success", started_at)
         except Exception as exc:
+            record_menu_cache_operation("write", "error", started_at)
             log.warning("cache write error [%s]: %s", key, exc)
 
     # ---------- Cache-Aside + anti-stampede ----------
@@ -135,6 +145,7 @@ class SqlMenuRepository(MenuRepository):
             return cached
 
         lock = None
+        lock_started_at = time.perf_counter()
         try:
             lock = redis_client.lock(
                 lock_key,
@@ -145,17 +156,24 @@ class SqlMenuRepository(MenuRepository):
                 blocking=True,
                 blocking_timeout=settings.CACHE_STAMPEDE_WAIT_TIMEOUT,
             ))
+            record_menu_cache_operation(
+                "lock", "acquired" if acquired else "timeout", lock_started_at
+            )
         except Exception as exc:
+            record_menu_cache_operation("lock", "error", lock_started_at)
             log.warning("cache lock failed [%s]: %s", cache_key, exc)
             return loader()
 
         if not acquired:
+            wait_started_at = time.perf_counter()
             deadline = time.monotonic() + settings.CACHE_STAMPEDE_WAIT_TIMEOUT
             while time.monotonic() < deadline:
                 time.sleep(settings.CACHE_STAMPEDE_RETRY_INTERVAL)
                 cached = self._read_cache(cache_key)
                 if cached is not None:
+                    record_menu_cache_operation("lock_wait", "hit", wait_started_at)
                     return cached
+            record_menu_cache_operation("lock_wait", "miss", wait_started_at)
             return loader()
 
         try:

@@ -593,3 +593,8 @@ bash scripts/run_load_test.sh
 ## Шпаргалка для защиты практической работы № 10
 
 Краткий сценарий демонстрации, команды проверок, адреса сервисов/портов и карта критериев «балл → сервис → файлы»: [docs/DEMO_CHEATSHEET.md](docs/DEMO_CHEATSHEET.md).
+
+
+## Диагностика производительности
+
+Для диагностики узких мест API, AnyIO Thread Pool, SQLAlchemy/PostgreSQL, Redis-кэша и ресурсов Linux-хоста добавлены отдельные Prometheus-метрики и дашборд Grafana. Инструкция: docs/BOTTLENECK_DIAGNOSTICS.md.
