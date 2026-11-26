@@ -192,9 +192,14 @@ if [ "$API_READY" = 1 ]; then
   curl -fsS http://127.0.0.1:8000/menu/items >/dev/null 2>&1 || true
   echo " OK"
   wait_for_prometheus_query "метрики API" 'count(up{job="sirius_app"} == 1)' 1 || true
-  wait_for_prometheus_query "метрики меню-кэша приложения" \
-    'count(sirius_menu_cache_operations_total{operation="read"})' 1 || \
-    echo "ВНИМАНИЕ: проверьте REPO_BACKEND в .env (для Redis-кэша нужен postgres)."
+  REPO_BACKEND="$(python -c 'from app.core.config import settings; print((settings.REPO_BACKEND or "postgres").lower())')"
+  if [ "$REPO_BACKEND" = "memory" ]; then
+    echo "==> REPO_BACKEND=memory: метрики Redis-кэша меню не ожидаются."
+  else
+    wait_for_prometheus_query "метрики меню-кэша приложения" \
+      'count(sirius_menu_cache_operations_total{operation="read"})' 1 || \
+      echo "ВНИМАНИЕ: метрика чтения кэша не появилась; проверьте logs/api.log и Redis."
+  fi
 else
   echo " API не ответил; проверьте logs/api.log"
 fi
