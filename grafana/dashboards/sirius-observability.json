@@ -133,7 +133,7 @@
     {
       "id": 4,
       "type": "timeseries",
-      "title": "RabbitMQ: kitchen_queue depth",
+      "title": "RabbitMQ: messages by queue",
       "gridPos": {
         "h": 8,
         "w": 12,
@@ -147,8 +147,8 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "rabbitmq_detailed_queue_messages{queue=\"kitchen_queue\"}",
-          "legendFormat": "kitchen_queue"
+          "expr": "rabbitmq_detailed_queue_messages",
+          "legendFormat": "{{queue}}"
         }
       ],
       "fieldConfig": {
@@ -169,7 +169,7 @@
     {
       "id": 5,
       "type": "timeseries",
-      "title": "Redis cache hit rate",
+      "title": "Redis: menu cache hit rate",
       "gridPos": {
         "h": 8,
         "w": 12,
@@ -183,8 +183,8 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "(sum(rate(redis_keyspace_hits_total[5m])) / clamp_min(sum(rate(redis_keyspace_hits_total[5m])) + sum(rate(redis_keyspace_misses_total[5m])), 1e-9)) * 100",
-          "legendFormat": "hit rate %"
+          "expr": "100 * sum(rate(sirius_menu_cache_operations_total{operation=\"read\",result=\"hit\"}[5m])) / clamp_min(sum(rate(sirius_menu_cache_operations_total{operation=\"read\",result=~\"hit|miss\"}[5m])), 1e-9)",
+          "legendFormat": "menu cache hit rate %"
         }
       ],
       "fieldConfig": {
