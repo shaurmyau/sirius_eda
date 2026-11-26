@@ -1027,7 +1027,7 @@
     {
       "id": 23,
       "type": "timeseries",
-      "title": "RabbitMQ: сообщения в kitchen_queue",
+      "title": "RabbitMQ: сообщения по очередям",
       "description": "",
       "gridPos": {
         "h": 8,
@@ -1046,8 +1046,8 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "rabbitmq_detailed_queue_messages{queue=\"kitchen_queue\"}",
-          "legendFormat": "kitchen_queue"
+          "expr": "rabbitmq_detailed_queue_messages",
+          "legendFormat": "{{queue}}"
         }
       ],
       "fieldConfig": {
