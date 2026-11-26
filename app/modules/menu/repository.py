@@ -215,17 +215,31 @@ class SqlMenuRepository(MenuRepository):
         )
 
     def get_all_json(self) -> str | None:
+        # This is the HTTP fast-path used by GET /menu/items. Keep it
+        # instrumented too; otherwise normal cache hits never reach _read_cache().
+        started_at = time.perf_counter()
         try:
-            return redis_client.get(CACHE_KEY_ALL)
+            value = redis_client.get(CACHE_KEY_ALL)
+            record_menu_cache_operation(
+                "read", "hit" if value is not None else "miss", started_at
+            )
+            return value
         except Exception as exc:
+            record_menu_cache_operation("read", "error", started_at)
             log.warning("cache read error [%s]: %s", CACHE_KEY_ALL, exc)
             return None
 
     def get_category_json(self, category: str) -> str | None:
         key = CACHE_KEY_CATEGORY.format(category=category)
+        started_at = time.perf_counter()
         try:
-            return redis_client.get(key)
+            value = redis_client.get(key)
+            record_menu_cache_operation(
+                "read", "hit" if value is not None else "miss", started_at
+            )
+            return value
         except Exception as exc:
+            record_menu_cache_operation("read", "error", started_at)
             log.warning("cache read error [%s]: %s", key, exc)
             return None
 
