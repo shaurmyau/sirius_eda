@@ -32,8 +32,79 @@ start() {
   PIDS+=($!)
 }
 
-echo "==> 0. Поднимаем инфраструктуру (Docker)..."
-docker compose up -d db redis rabbitmq prometheus redis-exporter postgres-exporter node-exporter grafana jaeger > /dev/null
+# Ждём готовности Prometheus и проверяем именно наличие scrape-серий,
+# а не только факт запуска контейнеров.
+wait_for_prometheus_ready() {
+  for _ in $(seq 1 60); do
+    if curl -fsS http://127.0.0.1:9090/-/ready >/dev/null 2>&1; then
+      echo "==> Prometheus готов"
+      return 0
+    fi
+    sleep 1
+  done
+  echo "ВНИМАНИЕ: Prometheus не ответил за 60 секунд (http://127.0.0.1:9090/-/ready)"
+  return 1
+}
+
+wait_for_prometheus_query() {
+  local label="$1"
+  local query="$2"
+  local expected="$3"
+  local raw value
+
+  echo -n "==> Проверка метрик: $label..."
+  for _ in $(seq 1 60); do
+    raw="$(curl -fsSG --data-urlencode "query=$query" \
+      http://127.0.0.1:9090/api/v1/query 2>/dev/null || true)"
+    value="$(printf '%s' "$raw" | python -c \
+      'import json,sys; d=json.load(sys.stdin); r=d.get("data",{}).get("result",[]); print(float(r[0]["value"][1]) if r else 0)' \
+      2>/dev/null || echo 0)"
+
+    if python -c 'import sys; sys.exit(0 if float(sys.argv[1]) >= float(sys.argv[2]) else 1)' \
+      "$value" "$expected" 2>/dev/null; then
+      echo " OK"
+      return 0
+    fi
+    sleep 1
+  done
+
+  echo " НЕТ ДАННЫХ (проверьте http://127.0.0.1:9090/targets)"
+  return 1
+}
+
+wait_for_redis() {
+  echo -n "==> Ожидание Redis..."
+  for _ in $(seq 1 60); do
+    if docker compose exec -T redis redis-cli ping 2>/dev/null | grep -q PONG; then
+      echo " OK"
+      return 0
+    fi
+    sleep 1
+  done
+  echo " НЕ ОТВЕЧАЕТ"
+  return 1
+}
+
+wait_for_clock_sync() {
+  if ! command -v timedatectl >/dev/null 2>&1; then
+    return 0
+  fi
+
+  echo -n "==> Проверка синхронизации системных часов..."
+  for _ in $(seq 1 30); do
+    if [ "$(timedatectl show -p NTPSynchronized --value 2>/dev/null || true)" = "yes" ]; then
+      echo " OK"
+      return 0
+    fi
+    sleep 1
+  done
+  echo " ВНИМАНИЕ: NTP не подтвердил синхронизацию; проверьте timedatectl status"
+  return 0
+}
+
+echo "==> 0. Поднимаем инфраструктуру (Docker; без сборки образов)..."
+wait_for_clock_sync
+docker compose up -d --no-build db redis rabbitmq prometheus redis-exporter postgres-exporter node-exporter grafana jaeger
 
 echo -n "==> Ожидание PostgreSQL..."
 until docker compose exec -T db pg_isready -U sirius -d sirius_food >/dev/null 2>&1; do
@@ -62,6 +133,20 @@ for i in range(30):
 sys.exit("AMQP не поднялся: docker logs --tail 60 sirius_rabbitmq")
 PY
 
+if ! wait_for_redis; then
+  echo "ВНИМАНИЕ: Redis не готов; cache hit rate может отсутствовать."
+fi
+
+if wait_for_prometheus_ready; then
+  wait_for_prometheus_query "PostgreSQL, Redis, RabbitMQ и Node Exporter" \
+    'count(up{job=~"postgres|redis|rabbitmq|node"} == 1)' 4 || true
+  wait_for_prometheus_query "метрики Redis" 'count(redis_keyspace_hits_total)' 1 || true
+  wait_for_prometheus_query "метрики очередей RabbitMQ" 'count(rabbitmq_detailed_queue_messages)' 1 || true
+  wait_for_prometheus_query "метрики Linux-хоста" 'count(node_memory_MemTotal_bytes)' 1 || true
+else
+  echo "ВНИМАНИЕ: инфраструктура продолжит запуск, но Prometheus пока не готов."
+fi
+
 echo "==> Применяем миграции БД (Alembic)..."
 alembic upgrade head > logs/alembic.log 2>&1 || { echo "Ошибка миграций! Смотрите logs/alembic.log"; exit 1; }
 
@@ -89,6 +174,28 @@ start saga     python -m app.workers.order_saga_consumer
 
 echo "==> 3. Запуск FastAPI монолита..."
 start api uvicorn app.main:app --reload --host 0.0.0.0
+
+echo -n "==> Ожидание API и инициализация метрик кэша..."
+API_READY=0
+for _ in $(seq 1 60); do
+  if curl -fsS http://127.0.0.1:8000/metrics >/dev/null 2>&1; then
+    API_READY=1
+    break
+  fi
+  echo -n "."
+  sleep 1
+done
+if [ "$API_READY" = 1 ]; then
+  # Один GET создаёт начальные серии cache hit/miss даже до старта Locust.
+  curl -fsS http://127.0.0.1:8000/menu/items >/dev/null 2>&1 || true
+  echo " OK"
+  wait_for_prometheus_query "метрики API" 'count(up{job="sirius_app"} == 1)' 1 || true
+  wait_for_prometheus_query "метрики меню-кэша приложения" \
+    'count(sirius_menu_cache_operations_total{operation="read"})' 1 || \
+    echo "ВНИМАНИЕ: проверьте REPO_BACKEND в .env (для Redis-кэша нужен postgres)."
+else
+  echo " API не ответил; проверьте logs/api.log"
+fi
 
 # lab8-frontend: фронтенд Next.js (ЛР № 8). FRONT_MODE=dev (по умолчанию) | prod
 FRONT_MODE="${FRONT_MODE:-dev}"
