@@ -141,7 +141,6 @@ if wait_for_prometheus_ready; then
   wait_for_prometheus_query "PostgreSQL, Redis, RabbitMQ и Node Exporter" \
     'count(up{job=~"postgres|redis|rabbitmq|node"} == 1)' 4 || true
   wait_for_prometheus_query "метрики Redis" 'count(redis_keyspace_hits_total)' 1 || true
-  wait_for_prometheus_query "метрики очередей RabbitMQ" 'count(rabbitmq_detailed_queue_messages)' 1 || true
   wait_for_prometheus_query "метрики Linux-хоста" 'count(node_memory_MemTotal_bytes)' 1 || true
 else
   echo "ВНИМАНИЕ: инфраструктура продолжит запуск, но Prometheus пока не готов."
@@ -156,6 +155,9 @@ if ! python -m app.workers.dlq_setup > logs/dlq_setup.log 2>&1; then
     tail -n 10 logs/dlq_setup.log
     echo "Продолжаем запуск (воркеры умеют переподключаться и создавать топологию)..."
 fi
+
+# Проверяем очередь после создания DLQ-топологии, а не сразу после запуска брокера.
+wait_for_prometheus_query "метрики очередей RabbitMQ" 'count(rabbitmq_detailed_queue_messages)' 1 || true
 
 # lab8-frontend: тестовые блюда для витрины (идемпотентно, дублей не создаёт)
 echo "==> Наполняем меню тестовыми блюдами (seed.py)..."
