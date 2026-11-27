@@ -33,6 +33,16 @@ def upgrade() -> None:
     op.add_column("orders", sa.Column("discount_amount", sa.Numeric(12, 2), nullable=False, server_default="0"))
     op.add_column("orders", sa.Column("promo_code_id", sa.Integer(), nullable=True))
     op.add_column("orders", sa.Column("points_spent", sa.Numeric(12, 2), nullable=False, server_default="0"))
+    # Backfill rows created before track A introduced persisted order totals.
+    op.execute(sa.text("""
+        UPDATE orders
+        SET total_amount = (
+            SELECT menu_items.price * orders.quantity
+            FROM menu_items
+            WHERE menu_items.id = orders.item_id
+        )
+        WHERE total_amount IS NULL AND item_id IS NOT NULL
+    """))
     op.create_foreign_key("fk_orders_promo_code_id", "orders", "promo_codes", ["promo_code_id"], ["id"])
 
     op.create_table(
