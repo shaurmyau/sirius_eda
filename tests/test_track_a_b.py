@@ -204,7 +204,7 @@ def test_spending_loyalty_points_is_capped_at_half_and_ledgered(session_factory)
     db = session_factory()
     try:
         order = db.get(models.Order, ids["order_id"])
-        order.total_amount = Decimal("100.00")
+        order.total_amount = Decimal("100.01")
         account = models.LoyaltyAccount(
             user_id=ids["user_id"], balance=Decimal("100.00"),
             total_earned=Decimal("100.00"), tier="Bronze",
@@ -217,7 +217,7 @@ def test_spending_loyalty_points_is_capped_at_half_and_ledgered(session_factory)
     repo = SqlOrderRepository(session_factory())
     try:
         with pytest.raises(ValueError, match="50%"):
-            repo.spend_loyalty_points(ids["order_id"], ids["user_id"], Decimal("51"))
+            repo.spend_loyalty_points(ids["order_id"], ids["user_id"], Decimal("50.01"))
         repo.spend_loyalty_points(ids["order_id"], ids["user_id"], Decimal("40"))
         # Повтор того же запроса не списывает баллы повторно.
         repo.spend_loyalty_points(ids["order_id"], ids["user_id"], Decimal("40"))
@@ -229,7 +229,7 @@ def test_spending_loyalty_points_is_capped_at_half_and_ledgered(session_factory)
         order = db.get(models.Order, ids["order_id"])
         user = db.get(models.User, ids["user_id"])
         account = db.query(models.LoyaltyAccount).filter_by(user_id=ids["user_id"]).one()
-        assert order.total_amount == Decimal("60.00")
+        assert order.total_amount == Decimal("60.01")
         assert order.points_spent == Decimal("40.00")
         assert account.balance == Decimal("60.00")
         assert user.balance == 40.0
