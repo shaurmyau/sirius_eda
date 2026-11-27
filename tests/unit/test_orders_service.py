@@ -1,5 +1,6 @@
 """Focused unit tests used by mutmut (no database, broker or FastAPI)."""
 import pytest
+from decimal import Decimal
 
 from app.entities import MenuItem, Order, User
 from app.exceptions import ConflictError, ForbiddenError, NotFoundError
@@ -33,7 +34,13 @@ def test_create_order_debits_exact_total_and_persists_processing(store, monkeypa
     order_id = service(store).create_order(1, 10, 3)
     assert order_id == 21
     assert store.users[1].balance == 200.0
-    assert store.orders[order_id] == Order(order_id, 1, 10, 3, "processing")
+    assert store.orders[order_id] == Order(
+        order_id, 1, 10, 3, "processing",
+        total_amount=Decimal("300.00"),
+        discount_amount=Decimal("0.00"),
+        promo_code_id=None,
+        points_spent=Decimal("0.00"),
+    )
 
 
 def test_create_order_rejects_unknown_user_and_unknown_item(store):

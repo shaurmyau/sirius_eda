@@ -41,7 +41,15 @@ DELIVERY_QUEUE = QueueDef("delivery_queue", ("order.paid",), "delivery_dlq", "de
 ORDER_SAGA_QUEUE = QueueDef(
     "order_saga_queue", ("delivery.failed",), "order_saga_dlq", "order_saga.dlq"
 )
-ALL_QUEUES = (KITCHEN_QUEUE, DELIVERY_QUEUE, ORDER_SAGA_QUEUE)
+LOYALTY_QUEUE = QueueDef(
+    "loyalty_queue", ("order.paid", "order.cancelled"), "loyalty_dlq", "loyalty.dlq"
+)
+PROMO_QUEUE = QueueDef(
+    "promo_queue", ("order.cancelled",), "promo_dlq", "promo.dlq"
+)
+ALL_QUEUES = (
+    KITCHEN_QUEUE, DELIVERY_QUEUE, ORDER_SAGA_QUEUE, LOYALTY_QUEUE, PROMO_QUEUE,
+)
 
 
 async def get_connection(url: str | None = None) -> aio_pika.abc.AbstractRobustConnection:

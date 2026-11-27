@@ -58,3 +58,32 @@ def send_order_sms(self, order_id: int, phone: str) -> str:
 def cleanup_old_task_logs() -> str:
     print("[Beat] Cleaning up old task logs...")
     return "Cleanup complete"
+
+
+
+@celery_app.task
+def deactivate_expired_promo_codes() -> int:
+    """Celery Beat: деактивирует промокоды с истёкшим valid_until."""
+    from datetime import datetime, timezone
+    from app.database import SessionLocal
+    from app.models import PromoCode
+
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
+    db = SessionLocal()
+    try:
+        rows = (
+            db.query(PromoCode)
+            .filter(PromoCode.is_active.is_(True), PromoCode.valid_until <= now)
+            .all()
+        )
+        for row in rows:
+            row.is_active = False
+        db.commit()
+        count = len(rows)
+        print(f"[Beat] Deactivated expired promo codes: {count}")
+        return count
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        db.close()

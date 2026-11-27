@@ -20,14 +20,20 @@ class MemoryStore:
         self.orders: dict[int, Order] = {}
         self.deliveries: dict[int, Delivery] = {}
         self.refresh_tokens: dict[str, RefreshTokenRecord] = {}
+        self.promo_codes: dict[str, dict] = {}
+        self.promo_usages: set[tuple[str, int]] = set()
+        self.loyalty_accounts: dict[int, dict] = {}
+        self.loyalty_transactions: dict[str, dict] = {}
 
     @staticmethod
     def next_id(table: dict) -> int:
         return max(table, default=0) + 1
 
     def clear(self):
-        for d in (self.users, self.menu_items, self.orders, self.deliveries, self.refresh_tokens):
+        for d in (self.users, self.menu_items, self.orders, self.deliveries, self.refresh_tokens,
+                 self.promo_codes, self.loyalty_accounts, self.loyalty_transactions):
             d.clear()
+        self.promo_usages.clear()
 
 
 memory_store = MemoryStore()

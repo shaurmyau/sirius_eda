@@ -31,3 +31,6 @@ opentelemetry-instrumentation-fastapi>=0.46b0
 pytest-cov>=5.0.0
 pact-python>=3.2,<4
 mutmut==2.4.4
+
+# Практическая работа, трек B и нагрузочный сценарий WebSocket
+websockets>=12.0

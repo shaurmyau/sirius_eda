@@ -593,3 +593,14 @@ bash scripts/run_load_test.sh
 ## Шпаргалка для защиты практической работы № 10
 
 Краткий сценарий демонстрации, команды проверок, адреса сервисов/портов и карта критериев «балл → сервис → файлы»: [docs/DEMO_CHEATSHEET.md](docs/DEMO_CHEATSHEET.md).
+
+
+---
+
+## Учебная практика: треки A и B
+
+Реализация промокодов и программы лояльности (трек A), а также real-time трекинга заказа через WebSocket (трек B) описана в [краткой инструкции к защите](docs/TRACKS_A_B_DEFENSE.md). Архитектурные решения и ограничения зафиксированы в [ADR-001](docs/ADR-001-practical-tracks-a-b.md).
+
+- **Трек A:** `POST /promos` (администрирование), `POST /orders/create` с `promo_code`, `POST /orders/{id}/pay` с `points_to_spend`, `GET /loyalty/me`. Consumer-ы `loyalty` и `promo` обрабатывают `order.paid` / `order.cancelled`; Celery Beat деактивирует истёкшие промокоды.
+- **Трек B:** `/ws/orders/{order_id}?token=<access_jwt>`. Redis Pub/Sub канал `order_updates` распределяет статусы между репликами; демонстрационная HTML-страница доступна по адресу `/order-tracking.html`.
+- **Проверки:** `pytest tests/test_track_a_b.py -v`; нагрузочные сценарии — `python scripts/load_test_tracks.py promo --help` и `python scripts/load_test_tracks.py ws --help`.

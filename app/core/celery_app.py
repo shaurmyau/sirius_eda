@@ -29,4 +29,8 @@ celery_app.conf.beat_schedule = {
         "task": "app.tasks.orders.cleanup_old_task_logs",
         "schedule": 60.0,
     },
+    "deactivate-expired-promo-codes-every-hour": {
+        "task": "app.tasks.orders.deactivate_expired_promo_codes",
+        "schedule": 3600.0,
+    },
 }

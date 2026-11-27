@@ -21,7 +21,10 @@ class DeliveryService:
             raise ForbiddenError("Курьер заблокирован")
         if self.repository.get_active_delivery_by_courier(courier_id):
             raise ValueError("У курьера уже есть активная доставка")
-        return self.repository.save_delivery(order_id, courier_id).id
+        delivery_id = self.repository.save_delivery(order_id, courier_id).id
+        from app.core.order_updates import publish_order_update
+        publish_order_update(order_id, "on_the_way")
+        return delivery_id
 
     def complete_delivery(self, delivery_id, current_user: User) -> None:
         d = self.repository.get_delivery_by_id(delivery_id)
@@ -35,11 +38,16 @@ class DeliveryService:
             raise ValueError("Доставка уже завершена")
         if d.status == "cancelled":
             raise ValueError("Отменённую доставку нельзя завершить")
-        d.status = "completed"
         o = self.repository.get_order_by_id(d.order_id)
+        if o is not None and o.status == "cancelled":
+            raise ValueError("Отменённый заказ нельзя доставить")
+        d.status = "completed"
         if o:
             o.status = "delivered"
         self.repository.save_completion(d, o)
+        if o is not None:
+            from app.core.order_updates import publish_order_update
+            publish_order_update(o.id, "delivered")
 
     def list_my_deliveries(self, current_user: User) -> list[dict]:
         """Курьер видит только свои. Admin видит все."""

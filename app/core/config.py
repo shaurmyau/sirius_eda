@@ -31,5 +31,9 @@ class Settings(BaseSettings):
     CACHE_STAMPEDE_WAIT_TIMEOUT: float = 5.0
     CACHE_STAMPEDE_RETRY_INTERVAL: float = 0.1
 
+    # Практическая работа, трек B — WebSocket heartbeat.
+    WS_HEARTBEAT_INTERVAL_SECONDS: int = 25
+    WS_HEARTBEAT_TIMEOUT_SECONDS: int = 10
+
 
 settings = Settings()

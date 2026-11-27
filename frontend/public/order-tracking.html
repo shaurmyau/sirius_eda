@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Сириус.Еда — трекинг заказа</title>
+  <style>
+    body{font:16px system-ui,sans-serif;max-width:720px;margin:40px auto;padding:0 18px;color:#172033}
+    label{display:block;margin:14px 0 5px}input{box-sizing:border-box;width:100%;padding:10px;border:1px solid #bbc4d2;border-radius:8px}
+    button{margin:16px 8px 16px 0;padding:10px 16px;border:0;border-radius:8px;background:#1f5f9f;color:white;cursor:pointer}
+    #state{padding:12px;background:#f1f5f9;border-radius:8px}#log{white-space:pre-wrap;font:13px ui-monospace,monospace;background:#101827;color:#d9e4f3;padding:14px;border-radius:8px;min-height:160px}
+  </style>
+</head>
+<body>
+  <h1>Трекинг заказа</h1>
+  <p>Демонстрационный клиент WebSocket. Токен используется только в этом браузере и передаётся API для проверки JWT.</p>
+  <label for="orderId">ID заказа</label><input id="orderId" type="number" min="1" value="1">
+  <label for="token">Access JWT</label><input id="token" type="password" autocomplete="off" placeholder="Вставьте access_token из /auth/login">
+  <button id="connect">Подключить</button><button id="disconnect">Отключить</button>
+  <p id="state">Соединение не установлено</p>
+  <h2>События</h2><div id="log"></div>
+  <script>
+    const state = document.getElementById("state");
+    const logBox = document.getElementById("log");
+    const orderInput = document.getElementById("orderId");
+    const tokenInput = document.getElementById("token");
+    let socket = null;
+    let reconnectTimer = null;
+    let manuallyClosed = false;
+    let retryDelay = 1000;
+
+    function log(message) {
+      logBox.textContent = new Date().toLocaleTimeString() + "  " + message + "\n" + logBox.textContent;
+    }
+    function connect() {
+      const orderId = Number(orderInput.value);
+      const token = tokenInput.value.trim();
+      if (!Number.isInteger(orderId) || orderId <= 0 || !token) {
+        state.textContent = "Укажите корректный ID заказа и access JWT";
+        return;
+      }
+      manuallyClosed = false;
+      clearTimeout(reconnectTimer);
+      const scheme = location.protocol === "https:" ? "wss" : "ws";
+      const url = scheme + "://" + location.hostname + ":8000/ws/orders/" +
+        orderId + "?token=" + encodeURIComponent(token);
+      state.textContent = "Подключение…";
+      socket = new WebSocket(url);
+      socket.onopen = () => { state.textContent = "Подключено"; retryDelay = 1000; log("WebSocket открыт"); };
+      socket.onmessage = (event) => {
+        let data;
+        try { data = JSON.parse(event.data); } catch { log("Получено: " + event.data); return; }
+        if (data.type === "ping") { socket.send(JSON.stringify({type:"pong"})); return; }
+        if (data.type === "snapshot") log("Текущий статус: " + data.status);
+        else if (data.type === "order.status") log("Новый статус: " + data.status);
+        else log(JSON.stringify(data));
+        state.textContent = "Заказ #" + orderId + ": " + (data.status || "соединение активно");
+      };
+      socket.onerror = () => { state.textContent = "Ошибка WebSocket"; };
+      socket.onclose = (event) => {
+        state.textContent = "Соединение закрыто (код " + event.code + ")";
+        log("Соединение закрыто; попытка переподключения");
+        if (!manuallyClosed) {
+          reconnectTimer = setTimeout(connect, retryDelay);
+          retryDelay = Math.min(retryDelay * 2, 10000);
+        }
+      };
+    }
+    function disconnect() {
+      manuallyClosed = true;
+      clearTimeout(reconnectTimer);
+      if (socket) socket.close(1000, "manual close");
+      state.textContent = "Отключено";
+    }
+    document.getElementById("connect").addEventListener("click", connect);
+    document.getElementById("disconnect").addEventListener("click", disconnect);
+  </script>
+</body>
+</html>

@@ -34,8 +34,14 @@ def to_menu_item(row):
 def to_order(row):
     if row is None:
         return None
-    return entities.Order(id=row.id, user_id=row.user_id, item_id=row.item_id,
-                          quantity=row.quantity, status=row.status)
+    return entities.Order(
+        id=row.id, user_id=row.user_id, item_id=row.item_id,
+        quantity=row.quantity, status=row.status,
+        total_amount=getattr(row, "total_amount", None),
+        discount_amount=getattr(row, "discount_amount", None) or 0,
+        promo_code_id=getattr(row, "promo_code_id", None),
+        points_spent=getattr(row, "points_spent", None) or 0,
+    )
 
 
 def to_delivery(row):

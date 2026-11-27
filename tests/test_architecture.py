@@ -8,7 +8,7 @@ MODULES = Path(__file__).resolve().parent.parent / "app" / "modules"
 
 def test_services_are_pure():
     services = sorted(MODULES.glob("*/service.py"))
-    assert len(services) == 5
+    assert len(services) == 7
     for path in services:
         tree = ast.parse(path.read_text(encoding="utf-8"))
         for node in ast.walk(tree):
