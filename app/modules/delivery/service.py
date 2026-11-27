@@ -38,8 +38,10 @@ class DeliveryService:
             raise ValueError("Доставка уже завершена")
         if d.status == "cancelled":
             raise ValueError("Отменённую доставку нельзя завершить")
-        d.status = "completed"
         o = self.repository.get_order_by_id(d.order_id)
+        if o is not None and o.status == "cancelled":
+            raise ValueError("Отменённый заказ нельзя доставить")
+        d.status = "completed"
         if o:
             o.status = "delivered"
         self.repository.save_completion(d, o)
