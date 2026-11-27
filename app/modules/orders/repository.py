@@ -9,7 +9,7 @@ from app.mappers import to_menu_item, to_order, to_user
 from app.memory_store import MemoryStore
 from app.models import (
     LoyaltyAccount, LoyaltyTransaction, MenuItem as MenuItemModel,
-    Order as OrderModel, PromoCode, PromoCodeUsage, User as UserModel,
+    Delivery as DeliveryModel, Order as OrderModel, PromoCode, PromoCodeUsage, User as UserModel,
 )
 from app.modules.promotions.policy import calculate_discount, validate_promo
 
@@ -150,6 +150,14 @@ class SqlOrderRepository(OrderRepository):
 
             total = money(order.total_amount)
             if total <= 0:
+                legacy_item = self.db.query(MenuItemModel).filter(
+                    MenuItemModel.id == order.item_id
+                ).first()
+                total = (
+                    money(legacy_item.price) * int(order.quantity)
+                    if legacy_item is not None else Decimal("0.00")
+                )
+            if total <= 0:
                 raise ValueError("У заказа нет суммы к оплате")
             if requested > (total * Decimal("0.5")).quantize(CENT, rounding=ROUND_DOWN):
                 raise ValueError("Баллами можно оплатить не более 50% заказа")
@@ -185,6 +193,11 @@ class SqlOrderRepository(OrderRepository):
         row = self.db.query(OrderModel).filter(OrderModel.id == order_id).with_for_update().first()
         if row:
             row.status = status
+            if status == "cancelled":
+                self.db.query(DeliveryModel).filter(
+                    DeliveryModel.order_id == order_id,
+                    DeliveryModel.status.in_(("pending", "in_progress")),
+                ).update({"status": "cancelled"}, synchronize_session=False)
             self.db.add(row)
             self.db.commit()
 
@@ -258,6 +271,12 @@ class InMemoryOrderRepository(OrderRepository):
             order.status = "paid"
             return requested
         total = money(order.total_amount)
+        if total <= 0:
+            legacy_item = self.store.menu_items.get(order.item_id)
+            total = (
+                money(legacy_item.price) * int(order.quantity)
+                if legacy_item is not None else Decimal("0.00")
+            )
         if requested <= 0 or requested > (total * Decimal("0.5")).quantize(CENT, rounding=ROUND_DOWN):
             raise ValueError("Баллами можно оплатить не более 50% заказа")
         if money(account["balance"]) < requested:
@@ -276,6 +295,10 @@ class InMemoryOrderRepository(OrderRepository):
     def update_order_status(self, order_id, status):
         if order_id in self.store.orders:
             self.store.orders[order_id].status = status
+            if status == "cancelled":
+                for delivery in self.store.deliveries.values():
+                    if delivery.order_id == order_id and delivery.status in ("pending", "in_progress"):
+                        delivery.status = "cancelled"
 
     def list_orders_by_user(self, user_id):
         return [o for o in self.store.orders.values() if o.user_id == user_id]
