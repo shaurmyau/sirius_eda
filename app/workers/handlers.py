@@ -348,4 +348,4 @@ def handle_order_cancelled_promo(db, payload: dict) -> list[OutEvent]:
         db.delete(usage)
     db.commit()
     log.info("promo_usage_compensated", order_id=order_id, restored=usage is not None and already is None)
-    return []]
+    return []
