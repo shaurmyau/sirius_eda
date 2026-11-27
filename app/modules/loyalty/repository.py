@@ -1,4 +1,5 @@
 """Репозиторий программы лояльности."""
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.models import LoyaltyAccount
@@ -15,7 +16,14 @@ class LoyaltyRepository:
         row = self.get_by_user_id(user_id)
         if row is None:
             row = LoyaltyAccount(user_id=user_id, balance=0, total_earned=0, tier="Bronze")
-            self.db.add(row)
-            self.db.commit()
-            self.db.refresh(row)
+            try:
+                self.db.add(row)
+                self.db.commit()
+                self.db.refresh(row)
+            except IntegrityError:
+                # Another request created the unique user account concurrently.
+                self.db.rollback()
+                row = self.get_by_user_id(user_id)
+                if row is None:
+                    raise
         return row
