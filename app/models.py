@@ -1,6 +1,6 @@
 """ORM-модели."""
 from sqlalchemy import (Boolean, Column, DateTime, Float, ForeignKey, Integer,
-                        String, Table)
+                        Numeric, String, Table)
 from sqlalchemy import UniqueConstraint, func
 from sqlalchemy.orm import relationship
 
@@ -61,6 +61,20 @@ class MenuItem(Base):
     category = Column(String(50), nullable=False, default="food", server_default="food")
 
 
+class PromoCode(Base):
+    __tablename__ = "promo_codes"
+    id = Column(Integer, primary_key=True)
+    code = Column(String(50), nullable=False, unique=True)
+    discount_type = Column(String(10), nullable=False)
+    discount_value = Column(Numeric(12, 2), nullable=False)
+    valid_from = Column(DateTime, nullable=False)
+    valid_until = Column(DateTime, nullable=False)
+    max_uses = Column(Integer, nullable=True)
+    current_uses = Column(Integer, nullable=False, default=0, server_default="0")
+    min_order_amount = Column(Numeric(12, 2), nullable=False, default=0, server_default="0")
+    is_active = Column(Boolean, nullable=False, default=True, server_default="true")
+
+
 class Order(Base):
     __tablename__ = "orders"
     id = Column(Integer, primary_key=True, index=True)
@@ -68,8 +82,54 @@ class Order(Base):
     item_id = Column(Integer, ForeignKey("menu_items.id"))
     quantity = Column(Integer, nullable=False)
     status = Column(String, default="processing")
+    total_amount = Column(Numeric(12, 2), nullable=True)
+    discount_amount = Column(Numeric(12, 2), nullable=False, default=0, server_default="0")
+    promo_code_id = Column(Integer, ForeignKey("promo_codes.id"), nullable=True)
+    points_spent = Column(Numeric(12, 2), nullable=False, default=0, server_default="0")
     user = relationship("User")
     item = relationship("MenuItem")
+
+
+class PromoCodeUsage(Base):
+    __tablename__ = "promo_code_usages"
+    __table_args__ = (
+        UniqueConstraint("promo_code_id", "user_id", name="uq_promo_code_user_usage"),
+        UniqueConstraint("order_id", name="uq_promo_code_usage_order"),
+    )
+    id = Column(Integer, primary_key=True)
+    promo_code_id = Column(Integer, ForeignKey("promo_codes.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    order_id = Column(Integer, ForeignKey("orders.id", ondelete="CASCADE"), nullable=False)
+    used_at = Column(DateTime, server_default=func.now(), nullable=False)
+
+
+class PromoCodeCompensation(Base):
+    __tablename__ = "promo_code_compensations"
+    id = Column(Integer, primary_key=True)
+    compensation_key = Column(String(100), nullable=False, unique=True)
+    promo_code_id = Column(Integer, ForeignKey("promo_codes.id"), nullable=False)
+    order_id = Column(Integer, ForeignKey("orders.id"), nullable=False)
+    created_at = Column(DateTime, server_default=func.now(), nullable=False)
+
+
+class LoyaltyAccount(Base):
+    __tablename__ = "loyalty_accounts"
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True)
+    balance = Column(Numeric(12, 2), nullable=False, default=0, server_default="0")
+    total_earned = Column(Numeric(12, 2), nullable=False, default=0, server_default="0")
+    tier = Column(String(10), nullable=False, default="Bronze", server_default="Bronze")
+
+
+class LoyaltyTransaction(Base):
+    __tablename__ = "loyalty_transactions"
+    id = Column(Integer, primary_key=True)
+    account_id = Column(Integer, ForeignKey("loyalty_accounts.id", ondelete="CASCADE"), nullable=False)
+    amount = Column(Numeric(12, 2), nullable=False)
+    type = Column(String(10), nullable=False)
+    order_id = Column(Integer, ForeignKey("orders.id", ondelete="CASCADE"), nullable=False)
+    idempotency_key = Column(String(120), nullable=False, unique=True)
+    created_at = Column(DateTime, server_default=func.now(), nullable=False)
 
 
 class Delivery(Base):

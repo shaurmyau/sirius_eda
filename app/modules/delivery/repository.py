@@ -57,6 +57,10 @@ class SqlDeliveryRepository(DeliveryRepository):
     def save_delivery(self, order_id, courier_id):
         row = DeliveryModel(order_id=order_id, courier_id=courier_id, status="in_progress")
         self.db.add(row)
+        order = self.db.query(OrderModel).filter(OrderModel.id == order_id).first()
+        if order is not None:
+            order.status = "on_the_way"
+            self.db.add(order)
         self.db.commit()
         self.db.refresh(row)
         return to_delivery(row)
@@ -103,6 +107,9 @@ class InMemoryDeliveryRepository(DeliveryRepository):
         d = Delivery(id=self.store.next_id(self.store.deliveries),
                      order_id=order_id, courier_id=courier_id, status="in_progress")
         self.store.deliveries[d.id] = d
+        order = self.store.orders.get(order_id)
+        if order is not None:
+            order.status = "on_the_way"
         return d
 
     def save_completion(self, delivery, order):

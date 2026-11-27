@@ -7,7 +7,7 @@ from app.entities import User
 from app.http_errors import to_http_error
 from app.modules.orders.service import OrderService
 from app.permissions import Perm
-from app.schemas import OrderCreate
+from app.schemas import OrderCreate, OrderPay
 
 router = APIRouter()
 
@@ -19,7 +19,7 @@ def create_order(payload: OrderCreate,
     if payload.quantity <= 0:
         raise HTTPException(400, "Количество должно быть больше нуля")
     try:
-        oid = service.create_order(current_user.id, payload.item_id, payload.quantity)
+        oid = service.create_order(current_user.id, payload.item_id, payload.quantity, payload.promo_code)
     except ValueError as e:
         raise to_http_error(e)
     return {"status": "success", "order_id": oid}
@@ -50,11 +50,12 @@ def kitchen_orders(_u: User = Depends(require_permission(Perm.ORDERS_KITCHEN))):
 
 @router.post("/{order_id}/pay")
 def pay_order(order_id: int,
+              payload: OrderPay | None = None,
               current_user: User = Depends(require_permission(Perm.ORDERS_CREATE)),
               service: OrderService = Depends(get_order_service)):
     """Оплата заказа. После оплаты публикуется событие order.paid в RabbitMQ."""
     try:
-        service.pay_order(order_id, current_user)
+        service.pay_order(order_id, current_user, payload.points_to_spend if payload else 0)
     except ValueError as e:
         raise to_http_error(e)
     return {"status": "success", "order_status": "paid"}

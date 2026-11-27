@@ -1,5 +1,6 @@
 """Сущности предметной области (dataclass, без ORM)."""
 from dataclasses import dataclass, field
+from decimal import Decimal
 
 from app.permissions import ROLE_PERMISSIONS
 
@@ -47,6 +48,10 @@ class Order:
     item_id: int
     quantity: int
     status: str
+    total_amount: Decimal | None = None
+    discount_amount: Decimal = Decimal("0.00")
+    promo_code_id: int | None = None
+    points_spent: Decimal = Decimal("0.00")
 
 
 @dataclass

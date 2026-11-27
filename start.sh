@@ -86,6 +86,8 @@ echo "==> 2. Запуск Event-Driven воркеров (ЛР № 7)..."
 start kitchen  python -m app.workers.kitchen_consumer
 start delivery python delivery_worker.py
 start saga     python -m app.workers.order_saga_consumer
+start loyalty  python -m app.workers.loyalty_consumer
+start promo    python -m app.workers.promo_consumer
 
 echo "==> 3. Запуск FastAPI монолита..."
 start api uvicorn app.main:app --reload --host 0.0.0.0
@@ -141,13 +143,14 @@ start flower celery -A app.core.celery_app flower
 
 echo -e "\n======================================================="
 echo "Всё запущено!"
-echo "Логи воркеров событий (ЛР №7):"
-echo "  tail -f logs/kitchen.log logs/delivery.log logs/saga.log"
+echo "Логи воркеров событий и треков A (ЛР №7 / практика):"
+echo "  tail -f logs/kitchen.log logs/delivery.log logs/saga.log logs/loyalty.log logs/promo.log"
 echo ""
 echo "Остальные логи:"
 echo "  tail -f logs/api.log logs/grpc.log logs/worker.log"
 echo ""
 echo "Swagger: http://127.0.0.1:8000/docs"
+echo "WebSocket demo: http://localhost:3000/order-tracking.html"
 if [ "$FRONT_STARTED" = 1 ]; then
   echo "Витрина:  http://localhost:3000/menu   (CSR-версия: /menu-csr)"
   echo "Логи фронтенда: tail -f logs/web.log"

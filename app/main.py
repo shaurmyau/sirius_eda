@@ -1,6 +1,7 @@
 """Точка входа."""
+import asyncio
 import logging
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -12,6 +13,10 @@ from app.modules.auth.router import router as auth_router
 from app.modules.delivery.router import router as delivery_router
 from app.modules.menu.router import router as menu_router
 from app.modules.orders.router import router as orders_router
+from app.modules.orders.websocket import router as order_websocket_router
+from app.modules.promotions.router import router as promotions_router
+from app.modules.loyalty.router import router as loyalty_router
+from app.core.websocket_manager import order_ws_manager
 from app.modules.users.router import router as users_router
 
 # Практическая работа № 9: observability включается без изменения бизнес-логики.
@@ -62,9 +67,19 @@ async def lifespan(app: FastAPI):
         _warm()
     else:
         print("[startup] REPO_BACKEND=memory — seed/warm пропущены")
+    # У каждой реплики собственные WebSocket-соединения и общий Redis Pub/Sub.
+    redis_listener = None
+    if not use_memory_backend():
+        redis_listener = asyncio.create_task(order_ws_manager.run_redis_listener())
     print("[startup] Application startup complete")
-    yield
-    print("[shutdown] Bye")
+    try:
+        yield
+    finally:
+        if redis_listener is not None:
+            redis_listener.cancel()
+            with suppress(asyncio.CancelledError):
+                await redis_listener
+        print("[shutdown] Bye")
 
 
 app = FastAPI(
@@ -103,4 +118,7 @@ app.include_router(auth_router, prefix="/auth", tags=["auth"])
 app.include_router(users_router, prefix="/users", tags=["users"])
 app.include_router(menu_router, prefix="/menu", tags=["menu"])
 app.include_router(orders_router, prefix="/orders", tags=["orders"])
+app.include_router(order_websocket_router, tags=["order-tracking"])
+app.include_router(promotions_router, prefix="/promos", tags=["promotions"])
+app.include_router(loyalty_router, prefix="/loyalty", tags=["loyalty"])
 app.include_router(delivery_router, prefix="/delivery", tags=["delivery"])

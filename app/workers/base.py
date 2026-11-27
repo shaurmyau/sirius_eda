@@ -68,6 +68,8 @@ def make_processor(spec: ConsumerSpec, session_factory, exchange):
                         payload = json.loads(message.body)
                         if not isinstance(payload, dict):
                             raise ValueError("payload должен быть JSON-объектом")
+                        # Routing key помогает одному consumer-у отличать OrderPaid от OrderCancelled.
+                        payload.setdefault("_routing_key", getattr(message, "routing_key", ""))
                         if payload.get("order_id") is not None:
                             span.set_attribute("order.id", str(payload["order_id"]))
 

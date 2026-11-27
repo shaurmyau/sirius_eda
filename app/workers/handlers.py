@@ -12,6 +12,7 @@
 from __future__ import annotations
 
 import uuid
+from decimal import Decimal, ROUND_HALF_UP
 import structlog
 
 log = structlog.get_logger("workers.handlers")
@@ -136,7 +137,10 @@ def handle_order_paid_delivery(db, payload: dict) -> list[OutEvent]:
         })]
 
     db.add(models.Delivery(order_id=order_id, courier_id=courier_id, status="in_progress"))
+    order.status = "on_the_way"
     db.commit()
+    from app.core.order_updates import publish_order_update
+    publish_order_update(order_id, "on_the_way")
     log.info("delivery_prepared", order_id=order_id, courier_id=courier_id)
     return [("delivery.assigned", {
         "event_id": _derived_event_id("delivery.assigned", event_id),
@@ -177,6 +181,8 @@ def handle_delivery_failed(db, payload: dict) -> list[OutEvent]:
     if user is not None:
         user.balance = float(user.balance or 0.0) + amount
     db.commit()
+    from app.core.order_updates import publish_order_update
+    publish_order_update(order_id, "cancelled")
 
     log.info("saga_order_cancelled_refund", order_id=order_id, user_id=order.user_id, refunded=amount)
     return [("order.cancelled", {
@@ -185,4 +191,161 @@ def handle_delivery_failed(db, payload: dict) -> list[OutEvent]:
         "customer_id": order.user_id,
         "refunded": amount,
         "reason": payload.get("reason", "delivery_failed"),
+        "promo_code_id": order.promo_code_id,
+        "discount_amount": str(order.discount_amount or 0),
+        "points_spent": str(order.points_spent or 0),
     })]
+
+
+# ---------------------------------------------------------------------------
+# Трек A: программа лояльности и компенсации Saga
+# ---------------------------------------------------------------------------
+def _money(value) -> Decimal:
+    return Decimal(str(value or 0)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+
+def _tier_for(total_earned: Decimal) -> str:
+    # Пороговые значения вынесены в одно место и описаны в ADR.
+    if total_earned >= Decimal("2000.00"):
+        return "Gold"
+    if total_earned >= Decimal("500.00"):
+        return "Silver"
+    return "Bronze"
+
+
+def handle_order_paid_loyalty(db, payload: dict) -> list[OutEvent]:
+    event_id = str(payload["event_id"])
+    order_id = int(payload["order_id"])
+    if not claim_event(db, event_id, "loyalty"):
+        return []
+
+    order = db.get(models.Order, order_id)
+    if order is None:
+        raise ValueError(f"Заказ {order_id} не найден")
+    if order.status not in ("paid", "on_the_way", "delivered"):
+        db.commit()
+        return []
+
+    account = (
+        db.query(models.LoyaltyAccount)
+        .filter_by(user_id=order.user_id)
+        .with_for_update()
+        .first()
+    )
+    if account is None:
+        account = models.LoyaltyAccount(
+            user_id=order.user_id, balance=Decimal("0.00"),
+            total_earned=Decimal("0.00"), tier="Bronze",
+        )
+        db.add(account)
+        db.flush()
+
+    key = f"earn_order_{order_id}"
+    exists = db.query(models.LoyaltyTransaction).filter_by(idempotency_key=key).first()
+    if exists:
+        db.commit()
+        return []
+
+    amount = _money(payload.get("total", payload.get("amount", order.total_amount or 0)))
+    percentages = {"Bronze": Decimal("3"), "Silver": Decimal("5"), "Gold": Decimal("7")}
+    percentage = percentages.get(account.tier, Decimal("3"))
+    earned = (amount * percentage / Decimal("100")).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    if earned <= 0:
+        db.commit()
+        return []
+
+    account.balance = _money(account.balance) + earned
+    account.total_earned = _money(account.total_earned) + earned
+    account.tier = _tier_for(account.total_earned)
+    db.add(models.LoyaltyTransaction(
+        account_id=account.id, amount=earned, type="earn", order_id=order_id,
+        idempotency_key=key,
+    ))
+    db.commit()
+    log.info("loyalty_points_earned", order_id=order_id, user_id=order.user_id, amount=str(earned), tier=account.tier)
+    return []
+
+
+def handle_order_cancelled_loyalty(db, payload: dict) -> list[OutEvent]:
+    event_id = str(payload["event_id"])
+    order_id = int(payload["order_id"])
+    if not claim_event(db, event_id, "loyalty"):
+        return []
+
+    order = db.get(models.Order, order_id)
+    if order is None:
+        raise ValueError(f"Заказ {order_id} не найден")
+    account = (
+        db.query(models.LoyaltyAccount)
+        .filter_by(user_id=order.user_id)
+        .with_for_update()
+        .first()
+    )
+    if account is None:
+        db.commit()
+        return []
+
+    spend = db.query(models.LoyaltyTransaction).filter_by(
+        idempotency_key=f"spend_order_{order_id}"
+    ).first()
+    refund_key = f"refund_order_{order_id}"
+    if spend is not None and db.query(models.LoyaltyTransaction).filter_by(idempotency_key=refund_key).first() is None:
+        refund = abs(_money(spend.amount))
+        account.balance = _money(account.balance) + refund
+        db.add(models.LoyaltyTransaction(
+            account_id=account.id, amount=refund, type="refund", order_id=order_id,
+            idempotency_key=refund_key,
+        ))
+
+    earned = db.query(models.LoyaltyTransaction).filter_by(
+        idempotency_key=f"earn_order_{order_id}"
+    ).first()
+    revoke_key = f"revoke_earn_order_{order_id}"
+    if earned is not None and db.query(models.LoyaltyTransaction).filter_by(idempotency_key=revoke_key).first() is None:
+        revoke = abs(_money(earned.amount))
+        account.balance = max(_money(account.balance) - revoke, Decimal("0.00"))
+        account.total_earned = max(_money(account.total_earned) - revoke, Decimal("0.00"))
+        db.add(models.LoyaltyTransaction(
+            account_id=account.id, amount=-revoke, type="revoke", order_id=order_id,
+            idempotency_key=revoke_key,
+        ))
+
+    account.tier = _tier_for(_money(account.total_earned))
+    db.commit()
+    log.info("loyalty_order_compensated", order_id=order_id, user_id=order.user_id)
+    return []
+
+
+# ---------------------------------------------------------------------------
+# Трек A: восстановление использования промокода по OrderCancelled
+# ---------------------------------------------------------------------------
+def handle_order_cancelled_promo(db, payload: dict) -> list[OutEvent]:
+    event_id = str(payload["event_id"])
+    order_id = int(payload["order_id"])
+    if not claim_event(db, event_id, "promo"):
+        return []
+
+    usage = (
+        db.query(models.PromoCodeUsage)
+        .filter_by(order_id=order_id)
+        .with_for_update()
+        .first()
+    )
+    key = f"restore_promo_order_{order_id}"
+    already = db.query(models.PromoCodeCompensation).filter_by(compensation_key=key).first()
+    if usage is not None and already is None:
+        promo = (
+            db.query(models.PromoCode)
+            .filter_by(id=usage.promo_code_id)
+            .with_for_update()
+            .first()
+        )
+        if promo is not None:
+            promo.current_uses = max(0, int(promo.current_uses or 0) - 1)
+            db.add(models.PromoCodeCompensation(
+                compensation_key=key, promo_code_id=promo.id, order_id=order_id,
+            ))
+        db.delete(usage)
+    db.commit()
+    log.info("promo_usage_compensated", order_id=order_id, restored=usage is not None and already is None)
+    return []]

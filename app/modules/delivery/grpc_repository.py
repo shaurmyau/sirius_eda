@@ -54,6 +54,12 @@ class GrpcDeliveryRepository(DeliveryRepository):
 
     def save_delivery(self, order_id: int, courier_id: int) -> Delivery:
         result = self.client.assign_courier(order_id, courier_id)
+        # Статус заказа остаётся в БД монолита даже при gRPC-адаптере доставки.
+        order = self.db.query(OrderModel).filter(OrderModel.id == order_id).first()
+        if order is not None:
+            order.status = "on_the_way"
+            self.db.add(order)
+            self.db.commit()
         return Delivery(
             id=result["delivery_id"],
             order_id=order_id,
@@ -63,6 +69,12 @@ class GrpcDeliveryRepository(DeliveryRepository):
 
     def save_completion(self, delivery: Delivery, order: Order | None) -> None:
         self.client.complete_delivery(delivery.id)
+        if order is not None:
+            row = self.db.query(OrderModel).filter(OrderModel.id == order.id).first()
+            if row is not None:
+                row.status = "delivered"
+                self.db.add(row)
+                self.db.commit()
 
     def list_deliveries_by_courier(self, courier_id: int) -> list[Delivery]:
         items = self.client.list_deliveries(courier_id)
