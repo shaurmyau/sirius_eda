@@ -137,6 +137,17 @@ class SqlOrderRepository(OrderRepository):
                 raise ValueError("Заказ не найден")
             if account is None:
                 raise ValueError("Счёт лояльности ещё не создан")
+            key = f"spend_order_{order_id}"
+            existing = self.db.query(LoyaltyTransaction).filter_by(idempotency_key=key).first()
+            if existing is not None:
+                if abs(money(existing.amount)) != requested:
+                    raise ValueError("Для заказа уже зафиксировано списание другого количества баллов")
+                # Проверяем идемпотентность до 50%-го лимита: сумма заказа
+                # уже уменьшена первым вызовом.
+                order.status = "paid"
+                self.db.commit()
+                return requested
+
             total = money(order.total_amount)
             if total <= 0:
                 raise ValueError("У заказа нет суммы к оплате")
@@ -144,15 +155,6 @@ class SqlOrderRepository(OrderRepository):
                 raise ValueError("Баллами можно оплатить не более 50% заказа")
             if money(account.balance) < requested:
                 raise ValueError("Недостаточно баллов лояльности")
-            key = f"spend_order_{order_id}"
-            existing = self.db.query(LoyaltyTransaction).filter_by(idempotency_key=key).first()
-            if existing is not None:
-                if abs(money(existing.amount)) != requested:
-                    raise ValueError("Для заказа уже зафиксировано списание другого количества баллов")
-                # Восстановление после сбоя между списанием баллов и подтверждением оплаты.
-                order.status = "paid"
-                self.db.commit()
-                return requested
 
             account.balance = money(account.balance) - requested
             # Заказ ранее резервировал всю сумму с внутреннего кошелька.
