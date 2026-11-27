@@ -254,3 +254,59 @@ def test_websocket_sends_snapshot_to_order_owner():
             with client.websocket_connect(f"/ws/orders/1?token={other_token}") as websocket:
                 websocket.receive_json()
     memory_store.clear()
+
+
+
+def test_legacy_order_can_spend_points_without_persisted_total(session_factory):
+    ids = seed_order(session_factory, status="processing", balance=100.0, price=50.0, quantity=2)
+    db = session_factory()
+    try:
+        order = db.get(models.Order, ids["order_id"])
+        order.total_amount = None
+        account = models.LoyaltyAccount(
+            user_id=ids["user_id"], balance=Decimal("100.00"),
+            total_earned=Decimal("100.00"), tier="Bronze",
+        )
+        db.add(account)
+        db.commit()
+    finally:
+        db.close()
+
+    repo = SqlOrderRepository(session_factory())
+    try:
+        repo.spend_loyalty_points(ids["order_id"], ids["user_id"], Decimal("40.00"))
+    finally:
+        repo.db.close()
+
+    db = session_factory()
+    try:
+        order = db.get(models.Order, ids["order_id"])
+        assert order.total_amount == Decimal("60.00")
+        assert order.points_spent == Decimal("40.00")
+    finally:
+        db.close()
+
+
+def test_cancelling_order_also_releases_assigned_courier(session_factory):
+    ids = seed_order(session_factory, status="on_the_way", courier=True)
+    db = session_factory()
+    try:
+        db.add(models.Delivery(
+            order_id=ids["order_id"], courier_id=ids["courier_id"], status="in_progress"
+        ))
+        db.commit()
+    finally:
+        db.close()
+
+    repo = SqlOrderRepository(session_factory())
+    try:
+        repo.update_order_status(ids["order_id"], "cancelled")
+    finally:
+        repo.db.close()
+
+    db = session_factory()
+    try:
+        delivery = db.query(models.Delivery).filter_by(order_id=ids["order_id"]).one()
+        assert delivery.status == "cancelled"
+    finally:
+        db.close()
