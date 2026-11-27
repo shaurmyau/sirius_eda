@@ -59,7 +59,7 @@ class SqlOrderRepository(OrderRepository):
         последний промокод или баланс одного клиента.
         """
         try:
-            user = self.db.query(UserModel).filter(UserModel.id == user_id).with_for_update().first()
+            user = self.db.query(UserModel).filter(UserModel.id == user_id).with_for_update(of=UserModel).first()
             item = self.db.query(MenuItemModel).filter(MenuItemModel.id == item_id).first()
             if user is None or item is None:
                 raise ValueError("Пользователь или блюдо не найдены")
@@ -132,7 +132,7 @@ class SqlOrderRepository(OrderRepository):
                 .with_for_update()
                 .first()
             )
-            user = self.db.query(UserModel).filter(UserModel.id == user_id).with_for_update().first()
+            user = self.db.query(UserModel).filter(UserModel.id == user_id).with_for_update(of=UserModel).first()
             if order is None or order.user_id != user_id:
                 raise ValueError("Заказ не найден")
             if account is None:
