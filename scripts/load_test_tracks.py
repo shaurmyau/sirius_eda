@@ -72,7 +72,7 @@ async def run_promo(args):
     print(json.dumps({
         "requests": len(results), "successful_orders": successes, "rejected_or_failed": failures,
         "http_statuses": {str(code): sum(1 for status, _ in results if status == code)
-                          for code, _ in results if status != "error"},
+                          for code, _ in results if code != "error"},
         "latency_ms_avg": round(statistics.mean(latencies), 2) if latencies else None,
         "latency_ms_p95": round(sorted(latencies)[int(0.95 * (len(latencies) - 1))], 2) if latencies else None,
         "expected_successes_for_max_uses_1": 1,
