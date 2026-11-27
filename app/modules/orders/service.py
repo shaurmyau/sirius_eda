@@ -70,7 +70,8 @@ class OrderService:
             o = self.repository.get_order_by_id(order_id)
 
         item = self.repository.get_menu_item_by_id(o.item_id)
-        amount = float(o.total_amount) if o.total_amount is not None else (
+        stored_total = Decimal(str(o.total_amount or 0))
+        amount = float(stored_total) if stored_total > 0 else (
             float(item.price * o.quantity) if item else 0.0
         )
         self.repository.update_order_status(order_id, "paid")
