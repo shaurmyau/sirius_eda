@@ -1,6 +1,6 @@
 """Инфраструктурный слой orders: транзакции, промокоды и списание баллов."""
 from abc import ABC, abstractmethod
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import Decimal, ROUND_DOWN, ROUND_HALF_UP
 
 from sqlalchemy.orm import Session
 
@@ -151,7 +151,7 @@ class SqlOrderRepository(OrderRepository):
             total = money(order.total_amount)
             if total <= 0:
                 raise ValueError("У заказа нет суммы к оплате")
-            if requested > (total * Decimal("0.5")).quantize(CENT):
+            if requested > (total * Decimal("0.5")).quantize(CENT, rounding=ROUND_DOWN):
                 raise ValueError("Баллами можно оплатить не более 50% заказа")
             if money(account.balance) < requested:
                 raise ValueError("Недостаточно баллов лояльности")
@@ -258,7 +258,7 @@ class InMemoryOrderRepository(OrderRepository):
             order.status = "paid"
             return requested
         total = money(order.total_amount)
-        if requested <= 0 or requested > total * Decimal("0.5"):
+        if requested <= 0 or requested > (total * Decimal("0.5")).quantize(CENT, rounding=ROUND_DOWN):
             raise ValueError("Баллами можно оплатить не более 50% заказа")
         if money(account["balance"]) < requested:
             raise ValueError("Недостаточно баллов лояльности")

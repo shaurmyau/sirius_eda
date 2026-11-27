@@ -1,5 +1,6 @@
 """Сервис администрирования промокодов."""
 from app.modules.promotions.repository import PromoCodeRepository
+from app.modules.promotions.policy import utc_naive
 
 
 class PromoCodeService:
@@ -11,6 +12,8 @@ class PromoCodeService:
         values["code"] = values["code"].strip().upper()
         if not values["code"]:
             raise ValueError("Код промокода не может быть пустым")
+        values["valid_from"] = utc_naive(values["valid_from"])
+        values["valid_until"] = utc_naive(values["valid_until"])
         if values["valid_until"] <= values["valid_from"]:
             raise ValueError("valid_until должен быть позже valid_from")
         if values["discount_type"] not in ("percent", "fixed"):
